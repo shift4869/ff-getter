@@ -220,10 +220,11 @@ def main():
     diff_following_list, diff_follower_list = get_diff(following_list, follower_list)
 
     # ファイルに保存
-    # id, mame, screen_name
     today_datetime = datetime.date.today()
     today_str = today_datetime.strftime("%Y%m%d")
     with Path(f"{FILE_NAME_BASE}_{today_str}.txt").open("w", encoding="utf-8") as fout:
+        # フォローしているユーザ
+        # id, mame, screen_name
         fout.write(f"{today_str}\n")
         fout.write("following\n")
         fout.write("id, name, screen_name\n")
@@ -235,6 +236,8 @@ def main():
             )
             fout.write(data_line)
 
+        # フォローされているユーザ
+        # id, mame, screen_name
         fout.write("\n")
         fout.write("follower\n")
         fout.write("id, name, screen_name\n")
@@ -246,7 +249,10 @@ def main():
             )
             fout.write(data_line)
 
+        # 前回実行ファイルが存在するならば
         if last_file_path:
+            # フォローしているユーザの差分
+            # diff_type, id, mame, screen_name
             fout.write("\n")
             fout.write(f"difference with {last_file_path.name}\n")
             fout.write("following\n")
@@ -260,6 +266,8 @@ def main():
                 )
                 fout.write(data_line)
 
+            # フォローされているユーザの差分
+            # diff_type, id, mame, screen_name
             fout.write("\n")
             fout.write("follower\n")
             fout.write("diff_type, id, name, screen_name\n")
@@ -272,6 +280,7 @@ def main():
                 )
                 fout.write(data_line)
 
+    # コンソール表示
     print(f"following num : {len(following_list)}")
     print(f"follower num : {len(follower_list)}")
     print("following : ")
@@ -290,12 +299,21 @@ def main():
         pprint.pprint(diff_follower_list)
 
     # 完了リプライ通知を送信
-    done_msg = "FFGetter run. Process Done .\n"
+    done_msg = "FFGetter run.\n"
+    done_msg += datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    done_msg += " Process Done.\n"
     done_msg += f"follow num : {len(following_list)} , "
     done_msg += f"follower num : {len(follower_list)}\n"
 
+    tweet_str = ""
+    try:
+        reply_user_name = config["notification"]["reply_to_user_name"]
+        tweet_str = "@" + reply_user_name + " " + done_msg
+    except Exception:
+        tweet_str = done_msg
+
     print("")
-    if post_tweet(done_msg):
+    if post_tweet(tweet_str):
         print("Reply posted.")
     else:
         print("Reply post failed.")

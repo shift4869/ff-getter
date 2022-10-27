@@ -38,19 +38,25 @@ class TwitterAPIEndpoint(Enum):
 
 
 def get_last_file_path() -> Path | None:
+    """前回実行ファイルのパスを取得する
+
+    Returns:
+        last_file_path (Path | None): 前回実行ファイルのパス, 存在しない場合None
+    """
     last_file_path: Path
 
-    # FILE_NAME_BASE をファイル名に持つすべてのファイルパスを取得
+    # カレントディレクトリから FILE_NAME_BASE をファイル名に持つすべてのファイルパスを取得
     prev_file_path_list = list(Path().glob(f"{FILE_NAME_BASE}*"))
     if not prev_file_path_list:
         # 前回実行ファイルが無かった = 初回実行
         return None
 
+    # 前回実行のうち最新のパスを保持
     last_file_path = prev_file_path_list[-1]
     today_datetime = datetime.date.today()
     today_str = today_datetime.strftime("%Y%m%d")
     if today_str in last_file_path.name:
-        # ファイル名の日付が今日と同じ = 初回実行ではないが実行済
+        # 今日と同じ日付がファイル名に含まれる = 初回実行ではないが実行済
         if len(prev_file_path_list) > 1:
             # 2つ以上見つかっているならば
             # 前回ファイルを2つ前のファイルとする = 今日でなく、その前に実行したときのファイル
@@ -85,8 +91,10 @@ def get_diff(following_list: list[dict], follower_list: list[dict]) -> tuple[lis
     with last_file_path.open("r", encoding="utf-8") as fin:
         for line in fin:
             if re.findall("^difference(.*)", line):
+                # difference の文言があるブロックまで来たら読み込み終了
                 break
             if re.findall("^follower$", line):
+                # follower の文言があるブロックまで来たらこれ以降は follower
                 now_kind = "follower"
             if records := re.findall(pattern, line):
                 record = records[0]
@@ -224,7 +232,7 @@ def main():
     today_str = today_datetime.strftime("%Y%m%d")
     with Path(f"{FILE_NAME_BASE}_{today_str}.txt").open("w", encoding="utf-8") as fout:
         # フォローしているユーザ
-        # id, mame, screen_name
+        # id, name, screen_name
         fout.write(f"{today_str}\n")
         fout.write("following\n")
         fout.write("id, name, screen_name\n")
@@ -237,7 +245,7 @@ def main():
             fout.write(data_line)
 
         # フォローされているユーザ
-        # id, mame, screen_name
+        # id, name, screen_name
         fout.write("\n")
         fout.write("follower\n")
         fout.write("id, name, screen_name\n")
@@ -252,7 +260,7 @@ def main():
         # 前回実行ファイルが存在するならば
         if last_file_path:
             # フォローしているユーザの差分
-            # diff_type, id, mame, screen_name
+            # diff_type, id, name, screen_name
             fout.write("\n")
             fout.write(f"difference with {last_file_path.name}\n")
             fout.write("following\n")
@@ -267,7 +275,7 @@ def main():
                 fout.write(data_line)
 
             # フォローされているユーザの差分
-            # diff_type, id, mame, screen_name
+            # diff_type, id, name, screen_name
             fout.write("\n")
             fout.write("follower\n")
             fout.write("diff_type, id, name, screen_name\n")

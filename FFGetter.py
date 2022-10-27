@@ -316,7 +316,10 @@ def main():
     tweet_str = ""
     try:
         reply_user_name = config["notification"]["reply_to_user_name"]
-        tweet_str = "@" + reply_user_name + " " + done_msg
+        if reply_user_name == "":
+            tweet_str = done_msg
+        else:
+            tweet_str = "@" + reply_user_name + " " + done_msg
     except Exception:
         tweet_str = done_msg
 

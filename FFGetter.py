@@ -84,7 +84,7 @@ def get_diff(following_list: list[dict], follower_list: list[dict]) -> tuple[lis
         return [], []
 
     # 前回実行ファイルを読み込む
-    pattern = "^(.*), (.*), (.*)$"
+    pattern = "^(.*?), (.*), (.*?)$"
     now_kind = "following"
     prev_following_list = []
     prev_follower_list = []

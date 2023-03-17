@@ -122,4 +122,4 @@ log*.txt*
 *.pdf
 *.bat
 *.txt
-/old
+/bak

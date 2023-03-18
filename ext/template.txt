@@ -1,0 +1,14 @@
+{{ today_str }}
+{{ following_caption }}
+id, name, screen_name
+{% for following in following_list %}{{ following }}{% endfor %}
+{{ follower_caption }}
+id, name, screen_name
+{% for follower in follower_list %}{{ follower }}{% endfor %}
+{{ difference_caption }}
+following
+diff_type, id, name, screen_name
+{% for diff_following in diff_following_list %}{{ diff_following }}{% endfor %}
+follower
+diff_type, id, name, screen_name
+{% for diff_follower in diff_follower_list %}{{ diff_follower }}{% endfor %}

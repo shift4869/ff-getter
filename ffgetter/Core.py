@@ -33,8 +33,6 @@ class Core():
         work_directory: Path = Path(os.path.dirname(__file__)).parent
         os.chdir(work_directory)
 
-        logger.info("init")
-
         config = configparser.ConfigParser()
         config.read_file(Path("./config/config.ini").open("r", encoding="utf-8"))
         object.__setattr__(self, "config", config)
@@ -52,7 +50,6 @@ class Core():
             ACCESS_TOKEN_SECRET
         )
         object.__setattr__(self, "twitter_api", twitter_api)
-        pass
 
     def run(self) -> FFGetResult:
         user_id = self.twitter_api.get_user_id()

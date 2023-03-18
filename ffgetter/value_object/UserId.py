@@ -9,6 +9,8 @@ class UserId():
     def __post_init__(self) -> None:
         if not isinstance(self._id, int):
             raise TypeError("id must be integer.")
+        if self._id < 0:
+            raise ValueError("id must be 0 or greater.")
 
     @property
     def id(self) -> int:

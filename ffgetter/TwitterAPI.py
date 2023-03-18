@@ -209,7 +209,7 @@ class TwitterAPI():
                 params["pagination_token"] = next_token
             data_dict = self.get(url, params=params)
 
-            data_list = data_dict.get("data", [])
+            data_list: list[dict] = data_dict.get("data", [])
             following_data_list = [
                 Following.create(
                     data.get("id"),
@@ -240,7 +240,7 @@ class TwitterAPI():
                 params["pagination_token"] = next_token
             data_dict = self.get(url, params=params)
 
-            data_list = data_dict.get("data", [])
+            data_list: list[dict] = data_dict.get("data", [])
             follower_data_list = [
                 Follower.create(
                     data.get("id"),

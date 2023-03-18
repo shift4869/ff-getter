@@ -2,20 +2,33 @@
 import configparser
 import datetime
 import json
+import logging.config
 import os
 import pprint
 import re
 from copy import deepcopy
 from enum import Enum
+from logging import INFO, getLogger
 from pathlib import Path
 
 from requests_oauthlib import OAuth1Session
 
+
 FILE_NAME_BASE = "ff_list"
-os.chdir(os.path.dirname(__file__))
+work_directory: Path = Path(os.path.dirname(__file__)).parent
+os.chdir(work_directory)
+
+logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
+for name in logging.root.manager.loggerDict:
+    if "FFGetter" not in name:
+        getLogger(name).disabled = True
+logger = getLogger(__name__)
+logger.setLevel(INFO)
+
+logger.info("test")
 
 config = configparser.ConfigParser()
-config.read_file(Path("config.ini").open("r", encoding="utf-8"))
+config.read_file(Path("./config/config.ini").open("r", encoding="utf-8"))
 
 API_KEY = config["twitter_token_keys_v2"]["api_key"]
 API_KEY_SECRET = config["twitter_token_keys_v2"]["api_key_secret"]
@@ -316,7 +329,7 @@ def main():
     tweet_str = ""
     try:
         reply_user_name = config["notification"]["reply_to_user_name"]
-        if reply_user_name == "":
+        if reply_user_name:
             tweet_str = done_msg
         else:
             tweet_str = "@" + reply_user_name + " " + done_msg
@@ -324,10 +337,13 @@ def main():
         tweet_str = done_msg
 
     print("")
-    if post_tweet(tweet_str):
-        print("Reply posted.")
+    if reply_user_name != "":
+        if post_tweet(tweet_str):
+            print("Reply posted.")
+        else:
+            print("Reply post failed.")
     else:
-        print("Reply post failed.")
+        print(tweet_str)
 
 
 if __name__ == "__main__":

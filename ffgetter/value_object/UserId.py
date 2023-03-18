@@ -1,0 +1,25 @@
+# coding: utf-8
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class UserId():
+    _id: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self._id, int):
+            raise TypeError("id must be integer.")
+
+    @property
+    def id(self) -> int:
+        return self._id
+
+    @property
+    def id_str(self) -> str:
+        return str(self._id)
+
+
+if __name__ == "__main__":
+    user_id = UserId(123)
+    print(user_id.id)
+    print(user_id.id_str)

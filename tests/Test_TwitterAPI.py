@@ -32,6 +32,16 @@ class TestTwitterAPI(unittest.TestCase):
             instance = TwitterAPI(dummy_api_key, dummy_api_secret, dummy_access_token_key, dummy_access_token_secret)
         return instance
 
+    def test_endpoint(self):
+        expect = [
+            ("USER_LOOKUP_ME", "https://api.twitter.com/2/users/me"),
+            ("FOLLOWING", "https://api.twitter.com/2/users/{}/following"),
+            ("FOLLOWERS", "https://api.twitter.com/2/users/{}/followers"),
+            ("POST_TWEET", "https://api.twitter.com/2/tweets"),
+        ]
+        actual = [(item.name, item.value) for item in TwitterAPIEndpoint]
+        self.assertEqual(expect, actual)
+
     def test_init(self):
         with ExitStack() as stack:
             mock_get = stack.enter_context(patch("ffgetter.TwitterAPI.TwitterAPI.get"))

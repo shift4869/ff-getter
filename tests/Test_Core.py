@@ -3,22 +3,25 @@ import configparser
 import datetime
 import sys
 import unittest
+import warnings
 from contextlib import ExitStack
 from logging import WARNING, getLogger
 from pathlib import Path
 
 from freezegun import freeze_time
-from mock import MagicMock, call, patch
+from mock import MagicMock, patch
 
 from ffgetter.Core import Core, FFGetResult
 from ffgetter.TwitterAPI import TwitterAPI
-from ffgetter.value_object.DiffRecordList import DiffFollowerList, DiffFollowingList
 
 logger = getLogger("ffgetter.Core")
 logger.setLevel(WARNING)
 
 
 class TestCore(unittest.TestCase):
+    def setUp(self) -> None:
+        warnings.simplefilter("ignore", ResourceWarning)
+
     def test_FFGetResult(self):
         expect = [
             "SUCCESS",
@@ -50,6 +53,7 @@ class TestCore(unittest.TestCase):
                 ACCESS_TOKEN_KEY,
                 ACCESS_TOKEN_SECRET
             )
+            config.clear()
 
     def test_run(self):
         with ExitStack() as stack:
@@ -92,10 +96,19 @@ class TestCore(unittest.TestCase):
             twitter_api.get_follower.assert_called_once_with("dummy_user_id")
             directory.get_last_following.assert_called_once_with()
             directory.get_last_follower.assert_called_once_with()
-            mock_diff_following_list.create_from_diff.assert_called_once_with(["dummy_following_list"], ["dummy_prev_following_list"])
-            mock_diff_follower_list.create_from_diff.assert_called_once_with(["dummy_follower_list"], ["dummy_prev_follower_list"])
+            mock_diff_following_list.create_from_diff.assert_called_once_with(
+                ["dummy_following_list"],
+                ["dummy_prev_following_list"]
+            )
+            mock_diff_follower_list.create_from_diff.assert_called_once_with(
+                ["dummy_follower_list"],
+                ["dummy_prev_follower_list"]
+            )
             directory.save_file.assert_called_once_with(
-                ["dummy_following_list"], ["dummy_follower_list"], ["dummy_diff_following_list"], ["dummy_diff_follower_list"]
+                ["dummy_following_list"],
+                ["dummy_follower_list"],
+                ["dummy_diff_following_list"],
+                ["dummy_diff_follower_list"]
             )
             twitter_api.post_tweet.assert_not_called()
 
@@ -115,10 +128,19 @@ class TestCore(unittest.TestCase):
             twitter_api.get_follower.assert_called_once_with("dummy_user_id")
             directory.get_last_following.assert_called_once_with()
             directory.get_last_follower.assert_called_once_with()
-            mock_diff_following_list.create_from_diff.assert_called_once_with(["dummy_following_list"], ["dummy_prev_following_list"])
-            mock_diff_follower_list.create_from_diff.assert_called_once_with(["dummy_follower_list"], ["dummy_prev_follower_list"])
+            mock_diff_following_list.create_from_diff.assert_called_once_with(
+                ["dummy_following_list"],
+                ["dummy_prev_following_list"]
+            )
+            mock_diff_follower_list.create_from_diff.assert_called_once_with(
+                ["dummy_follower_list"],
+                ["dummy_prev_follower_list"]
+            )
             directory.save_file.assert_called_once_with(
-                ["dummy_following_list"], ["dummy_follower_list"], ["dummy_diff_following_list"], ["dummy_diff_follower_list"]
+                ["dummy_following_list"],
+                ["dummy_follower_list"],
+                ["dummy_diff_following_list"],
+                ["dummy_diff_follower_list"]
             )
             twitter_api.post_tweet.assert_called_once_with(tweet_str)
 

@@ -130,7 +130,7 @@ class Directory():
                   following_list: FollowingList,
                   follower_list: FollowerList,
                   diff_following_list: DiffFollowingList,
-                  diff_follower_list: DiffFollowerList) -> int:
+                  diff_follower_list: DiffFollowerList) -> str:
         """結果をファイルに保存
         """
         last_file_path: Path | None = self.get_last_file_path()

@@ -20,20 +20,22 @@ if __name__ == "__main__":
             description="Following/Follower get.",
             epilog="require config file for ./config/config.ini"
         )
-        parser.add_argument("--after-open",
+        parser.add_argument("--reply-to-user-name",
+                            type=str,
+                            help="Notification reply post after process run.")
+        parser.add_argument("--disable-after-open",
                             action="store_true",
-                            help="result file open after process run.")
-        parser.add_argument("--notification",
-                            action="store_false",
-                            help="notification reply post after process run.")
-        args = parser.parse_args()
+                            help="Result file open after process run. Set this option, then don't open file after process run.")
+        parser.add_argument("--reserved-file-num",
+                            type=int,
+                            help="Number of result file reserved. Greater than, then move to backup directory after process run.")
     except Exception as e:
         parser.print_help()
         logger.error(e)
         exit(-1)
 
     try:
-        core = Core()
+        core = Core(parser)
         core.run()
     except Exception as e:
         logger.error(e)

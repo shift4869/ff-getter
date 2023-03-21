@@ -46,6 +46,11 @@ class Directory():
         object.__setattr__(self, "base_path", Path(os.path.dirname(__file__)).parent)
         self.set_current()
 
+        if not Path(self.TEMPLATE_FILE_PATH).is_file():
+            raise FileNotFoundError(f"template file is not found. {self.TEMPLATE_FILE_PATH} is not exist.")
+        Path(self.RESULT_DIRECTORY).mkdir(parents=True, exist_ok=True)
+        Path(self.BACKUP_DIRECTORY).mkdir(parents=True, exist_ok=True)
+
     def set_current(self) -> Path:
         """カレントディレクトリを設定する
 
@@ -172,7 +177,7 @@ class Directory():
             diff_follower_list (DiffFollowerList): 前回との差分を格納した DiffFollowerList
 
         Returns:
-            rendered_str (str): テンプレートに各種情報を埋め込んだ後の出力文字列
+            file_path (Path): 保存したファイルのパス
         """
         # 前回ファイルがあるならパスを取得
         last_file_path: Path | None = self.get_last_file_path()
@@ -220,7 +225,41 @@ class Directory():
         # ファイル保存
         with file_path.open("w", encoding="utf-8") as fout:
             fout.write(rendered_str)
-        return rendered_str
+        return file_path
+    
+    def move_old_file(self, reserved_file_num: int) -> list[str] | FileExistsError:
+        """古いファイルを移動させる
+
+        RESULT_DIRECTORY に存在する reserved_file_num 個を超える分の古いファイルを
+        BACKUP_DIRECTORY に移動させる
+
+        Args:
+            reserved_file_num (int): RESULT_DIRECTORY に残すファイル数
+
+        Raises:
+            FileExistsError: 移動先に同じ名前のファイルが存在している場合
+
+        Returns:
+            moved_list (list[str]): 移動させた後のファイルパスリスト
+        """
+        if reserved_file_num < 0:
+            return []
+
+        result_path = Path(self.RESULT_DIRECTORY)
+        backup_path = Path(self.BACKUP_DIRECTORY)
+        file_path_list = list(result_path.glob(f"{self.FILE_NAME_BASE}*"))
+        if len(file_path_list) <= reserved_file_num:
+            return []
+
+        moved_list = []
+        to_move_index = len(file_path_list) - reserved_file_num
+        to_move_file_list = file_path_list[:to_move_index]
+        for to_move_file in to_move_file_list:
+            # すでに移動先に同じ名前のファイルが存在している場合は
+            # FileExistsError が発生する
+            to_move_file.rename(backup_path / to_move_file.name)
+            moved_list.append(backup_path / to_move_file.name)
+        return moved_list
 
 
 if __name__ == "__main__":
@@ -250,3 +289,6 @@ if __name__ == "__main__":
     diff_following = DiffFollowingList.create_from_diff(following_list1, following_list2)
     rendered_str = directory.save_file(prev_following_list, prev_follower_list, diff_following, diff_following)
     print(rendered_str)
+
+    # res = directory.move_old_file(10)
+    # print(res)

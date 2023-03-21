@@ -1,7 +1,9 @@
 # coding: utf-8
+import argparse
 import configparser
 import datetime
 import os
+import subprocess
 from dataclasses import dataclass
 from enum import Enum, auto
 from logging import INFO, getLogger
@@ -11,6 +13,7 @@ from typing import ClassVar
 from ffgetter.Directory import Directory
 from ffgetter.TwitterAPI import TwitterAPI
 from ffgetter.value_object.DiffRecordList import DiffFollowerList, DiffFollowingList
+from ffgetter.value_object.ScreenName import ScreenName
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
@@ -39,6 +42,7 @@ class Core():
         twitter_api (TwitterAPI): ツイッターAPI使用クラス
         CONFIG_FILE_PATH (str): config 設定ファイルがあるパス
     """
+    parser: argparse.ArgumentParser | None = None
     config: ClassVar[configparser.ConfigParser]
     twitter_api: ClassVar[TwitterAPI]
 
@@ -52,6 +56,16 @@ class Core():
 
         config = configparser.ConfigParser()
         config.read_file(Path(self.CONFIG_FILE_PATH).open("r", encoding="utf-8"))
+        if self.parser:
+            args = self.parser.parse_args()
+            if args.reply_to_user_name:
+                config["notification"]["is_notify"] = "True"
+                config["notification"]["reply_to_user_name"] = ScreenName(args.reply_to_user_name).name
+            if args.disable_after_open:
+                config["after_open"]["is_after_open"] = "False"
+            if args.reserved_file_num:
+                config["move_old_file"]["is_move_old_file"] = "True"
+                config["move_old_file"]["reserved_file_num"] = str(args.reserved_file_num)
         object.__setattr__(self, "config", config)
 
         config_twitter_token = config["twitter_token_keys_v2"]
@@ -76,6 +90,8 @@ class Core():
         (3)今回のffと前回のffを比較し、その差分を取得する(diff_*)
         (4)結果をファイルに記録・保存する
         (5)完了通知を送信する
+        (6)古いファイルを移動させる
+        (7)完了後にファイルを開く
 
         Args:
             None
@@ -99,8 +115,8 @@ class Core():
             diff_follower_list = DiffFollowerList.create_from_diff(follower_list, prev_follower_list)
 
             # (4)結果保存
-            saved_text = directory.save_file(following_list, follower_list, diff_following_list, diff_follower_list)
-            logger.info(saved_text)
+            saved_file_path = directory.save_file(following_list, follower_list, diff_following_list, diff_follower_list)
+            logger.info(f"file saved to {str(saved_file_path)}.")
 
             # (5)完了通知
             done_msg = "FFGetter run.\n"
@@ -109,24 +125,31 @@ class Core():
             done_msg += f"follow num : {len(following_list)} , "
             done_msg += f"follower num : {len(follower_list)}\n"
 
-            tweet_str = ""
             try:
+                tweet_str = ""
+                is_notify = self.config["notification"].getboolean("is_notify")
                 reply_user_name = self.config["notification"]["reply_to_user_name"]
-                if reply_user_name == "":
-                    tweet_str = done_msg
-                else:
+                if is_notify and (reply_user_name != ""):
                     tweet_str = "@" + reply_user_name + " " + done_msg
+                    if self.twitter_api.post_tweet(tweet_str):
+                        logger.info("Reply posted.")
             except Exception:
-                tweet_str = done_msg
+                logger.info("Reply post failed.")
 
             logger.info("")
-            if reply_user_name != "":
-                if self.twitter_api.post_tweet(tweet_str):
-                    logger.info("Reply posted.")
-                else:
-                    logger.info("Reply post failed.")
-
             logger.info(done_msg)
+
+            # (6)古いファイルを移動させる
+            is_move_old_file = self.config["move_old_file"].getboolean("is_move_old_file")
+            if is_move_old_file:
+                reserved_file_num = int(self.config["move_old_file"]["reserved_file_num"])
+                directory.move_old_file(reserved_file_num)
+
+            # (7)完了後にファイルを開く
+            is_after_open = self.config["after_open"].getboolean("is_after_open")
+            if is_after_open:
+                subprocess.Popen(["start", str(saved_file_path)], shell=True)
+
         except Exception as e:
             logger.error(e)
             return FFGetResult.FAILED

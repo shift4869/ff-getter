@@ -61,6 +61,7 @@ class TestCore(unittest.TestCase):
             mock_directory = stack.enter_context(patch("ffgetter.Core.Directory"))
             mock_diff_following_list = stack.enter_context(patch("ffgetter.Core.DiffFollowingList"))
             mock_diff_follower_list = stack.enter_context(patch("ffgetter.Core.DiffFollowerList"))
+            mock_subprocess = stack.enter_context(patch("ffgetter.Core.subprocess"))
             mock_logger_info = stack.enter_context(patch.object(logger, "info"))
             mock_logger_error = stack.enter_context(patch.object(logger, "error"))
             freeze_gun = stack.enter_context(freeze_time("2023-03-20 00:00:00"))
@@ -77,7 +78,8 @@ class TestCore(unittest.TestCase):
             mock_diff_following_list.create_from_diff.return_value = ["dummy_diff_following_list"]
             mock_diff_follower_list.create_from_diff.return_value = ["dummy_diff_follower_list"]
 
-            directory.save_file.return_value = "dummy_saved_text"
+            directory.save_file.return_value = "dummy_saved_file_path"
+            directory.move_old_file.return_value = ["dummy_moved_old_file_path"]
 
             done_msg = "FFGetter run.\n"
             done_msg += datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
@@ -85,65 +87,94 @@ class TestCore(unittest.TestCase):
             done_msg += f"follow num : {1} , "
             done_msg += f"follower num : {1}\n"
 
+            # 分岐に関わらず実行されるメソッドの呼び出し確認用
+            def check_common_mock_call():
+                twitter_api.get_user_id.assert_called_once_with()
+                twitter_api.get_following.assert_called_once_with("dummy_user_id")
+                twitter_api.get_follower.assert_called_once_with("dummy_user_id")
+                directory.get_last_following.assert_called_once_with()
+                directory.get_last_follower.assert_called_once_with()
+                mock_diff_following_list.create_from_diff.assert_called_once_with(
+                    ["dummy_following_list"],
+                    ["dummy_prev_following_list"]
+                )
+                mock_diff_follower_list.create_from_diff.assert_called_once_with(
+                    ["dummy_follower_list"],
+                    ["dummy_prev_follower_list"]
+                )
+                directory.save_file.assert_called_once_with(
+                    ["dummy_following_list"],
+                    ["dummy_follower_list"],
+                    ["dummy_diff_following_list"],
+                    ["dummy_diff_follower_list"]
+                )
+                mock_twitter.reset_mock()
+                mock_directory.reset_mock()
+                mock_diff_following_list.reset_mock()
+                mock_diff_follower_list.reset_mock()
+
+            # 正常系
+            # すべての分岐でTrueとなるパターン
             core = Core()
-            core.config["notification"]["reply_to_user_name"] = ""
-            actual = core.run()
-            expect = FFGetResult.SUCCESS
-            self.assertIs(expect, actual)
-
-            twitter_api.get_user_id.assert_called_once_with()
-            twitter_api.get_following.assert_called_once_with("dummy_user_id")
-            twitter_api.get_follower.assert_called_once_with("dummy_user_id")
-            directory.get_last_following.assert_called_once_with()
-            directory.get_last_follower.assert_called_once_with()
-            mock_diff_following_list.create_from_diff.assert_called_once_with(
-                ["dummy_following_list"],
-                ["dummy_prev_following_list"]
-            )
-            mock_diff_follower_list.create_from_diff.assert_called_once_with(
-                ["dummy_follower_list"],
-                ["dummy_prev_follower_list"]
-            )
-            directory.save_file.assert_called_once_with(
-                ["dummy_following_list"],
-                ["dummy_follower_list"],
-                ["dummy_diff_following_list"],
-                ["dummy_diff_follower_list"]
-            )
-            twitter_api.post_tweet.assert_not_called()
-
-            mock_twitter.reset_mock()
-            mock_directory.reset_mock()
-            mock_diff_following_list.reset_mock()
-            mock_diff_follower_list.reset_mock()
-
+            core.config["notification"]["is_notify"] = "True"
             core.config["notification"]["reply_to_user_name"] = "dummy_user_name"
-            tweet_str = "@" + "dummy_user_name" + " " + done_msg
+            core.config["move_old_file"]["is_move_old_file"] = "True"
+            core.config["move_old_file"]["reserved_file_num"] = "10"
+            core.config["after_open"]["is_after_open"] = "True"
             actual = core.run()
             expect = FFGetResult.SUCCESS
             self.assertIs(expect, actual)
 
-            twitter_api.get_user_id.assert_called_once_with()
-            twitter_api.get_following.assert_called_once_with("dummy_user_id")
-            twitter_api.get_follower.assert_called_once_with("dummy_user_id")
-            directory.get_last_following.assert_called_once_with()
-            directory.get_last_follower.assert_called_once_with()
-            mock_diff_following_list.create_from_diff.assert_called_once_with(
-                ["dummy_following_list"],
-                ["dummy_prev_following_list"]
-            )
-            mock_diff_follower_list.create_from_diff.assert_called_once_with(
-                ["dummy_follower_list"],
-                ["dummy_prev_follower_list"]
-            )
-            directory.save_file.assert_called_once_with(
-                ["dummy_following_list"],
-                ["dummy_follower_list"],
-                ["dummy_diff_following_list"],
-                ["dummy_diff_follower_list"]
-            )
+            tweet_str = "@" + "dummy_user_name" + " " + done_msg
+            reserved_file_num = int(core.config["move_old_file"]["reserved_file_num"])
             twitter_api.post_tweet.assert_called_once_with(tweet_str)
+            directory.move_old_file.assert_called_once_with(reserved_file_num)
+            mock_subprocess.Popen.assert_called_once_with(["start", "dummy_saved_file_path"], shell=True)
+            mock_subprocess.reset_mock()
+            check_common_mock_call()
 
+            # (7)完了後にファイルを開く のみFalse
+            core.config["after_open"]["is_after_open"] = "False"
+            actual = core.run()
+            expect = FFGetResult.SUCCESS
+            self.assertIs(expect, actual)
+            tweet_str = "@" + "dummy_user_name" + " " + done_msg
+            reserved_file_num = int(core.config["move_old_file"]["reserved_file_num"])
+            twitter_api.post_tweet.assert_called_once_with(tweet_str)
+            directory.move_old_file.assert_called_once_with(reserved_file_num)
+            mock_subprocess.Popen.assert_not_called()
+            mock_subprocess.reset_mock()
+            check_common_mock_call()
+
+            # (6)古いファイルを移動させる のみFalse
+            core.config["move_old_file"]["is_move_old_file"] = "False"
+            core.config["after_open"]["is_after_open"] = "True"
+            actual = core.run()
+            expect = FFGetResult.SUCCESS
+            self.assertIs(expect, actual)
+            tweet_str = "@" + "dummy_user_name" + " " + done_msg
+            reserved_file_num = int(core.config["move_old_file"]["reserved_file_num"])
+            twitter_api.post_tweet.assert_called_once_with(tweet_str)
+            directory.move_old_file.assert_not_called()
+            mock_subprocess.Popen.assert_called_once_with(["start", "dummy_saved_file_path"], shell=True)
+            mock_subprocess.reset_mock()
+            check_common_mock_call()
+
+            # (5)完了通知 のみFalse
+            core.config["notification"]["is_notify"] = "False"
+            core.config["move_old_file"]["is_move_old_file"] = "True"
+            actual = core.run()
+            expect = FFGetResult.SUCCESS
+            self.assertIs(expect, actual)
+            tweet_str = "@" + "dummy_user_name" + " " + done_msg
+            reserved_file_num = int(core.config["move_old_file"]["reserved_file_num"])
+            twitter_api.post_tweet.assert_not_called()
+            directory.move_old_file.assert_called_once_with(reserved_file_num)
+            mock_subprocess.Popen.assert_called_once_with(["start", "dummy_saved_file_path"], shell=True)
+            mock_subprocess.reset_mock()
+            check_common_mock_call()
+
+            # 異常系
             twitter_api.get_user_id.side_effect = ValueError
             actual = core.run()
             expect = FFGetResult.FAILED

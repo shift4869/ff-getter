@@ -1,7 +1,6 @@
 # coding: utf-8
 import configparser
 import datetime
-import logging.config
 import os
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -135,6 +134,7 @@ class Core():
 
 
 if __name__ == "__main__":
+    import logging.config
     logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
     for name in logging.root.manager.loggerDict:
         if __name__ not in name:

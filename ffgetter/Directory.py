@@ -167,7 +167,7 @@ class Directory():
                   following_list: FollowingList,
                   follower_list: FollowerList,
                   diff_following_list: DiffFollowingList,
-                  diff_follower_list: DiffFollowerList) -> str:
+                  diff_follower_list: DiffFollowerList) -> Path:
         """結果をファイルに保存する
 
         Args:

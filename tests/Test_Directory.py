@@ -25,7 +25,7 @@ class TestDirectory(unittest.TestCase):
         directory.set_current()
         return directory
 
-    def _make_sample_file(self):
+    def _make_sample_file(self) -> Path:
         directory = Directory()
         template_str = ""
         template_file_path = Path(os.path.dirname(__file__)).parent / directory.TEMPLATE_FILE_PATH
@@ -72,7 +72,7 @@ class TestDirectory(unittest.TestCase):
         })
         with file_path.open("w", encoding="utf-8") as fout:
             fout.write(rendered_str)
-        return rendered_str
+        return file_path
 
     def test_Directory(self):
         directory = Directory()
@@ -97,6 +97,8 @@ class TestDirectory(unittest.TestCase):
         with freeze_time("2023-03-18 00:00:00"):
             directory = self._get_instance()
             result_directory_path = Path(directory.RESULT_DIRECTORY)
+            if result_directory_path.is_dir():
+                shutil.rmtree(result_directory_path)
             result_directory_path.mkdir(parents=True, exist_ok=True)
 
             # 前回実行ファイルが無かった = 初回実行
@@ -181,8 +183,8 @@ class TestDirectory(unittest.TestCase):
             yesterday_str = "20230317"
             actual = directory.save_file(following_list, follower_list, diff_following_list, diff_follower_list)
             expect = self._make_sample_file()
-            expect = expect.replace(yesterday_str, today_str)  # 日付部分の差異は吸収
-            self.assertEqual(expect, actual)
+            expect_str = str(expect.absolute()).replace(yesterday_str, today_str)  # 日付部分の差異は吸収
+            self.assertEqual(expect_str, str(actual.absolute()))
 
             file_path = Path(directory.RESULT_DIRECTORY) / f"{directory.FILE_NAME_BASE}_{today_str}.txt"
             with file_path.open("r") as fin:

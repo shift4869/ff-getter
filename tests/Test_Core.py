@@ -1,4 +1,5 @@
 # coding: utf-8
+import argparse
 import configparser
 import datetime
 import sys
@@ -45,6 +46,7 @@ class TestCore(unittest.TestCase):
             ACCESS_TOKEN_SECRET = config_twitter_token["access_token_secret"]
 
             core = Core()
+            self.assertIsNone(core.parser)
             self.assertEqual(config, core.config)
             self.assertIsInstance(core.twitter_api, TwitterAPI)
             mock_twitter.assert_called_once_with(
@@ -53,6 +55,18 @@ class TestCore(unittest.TestCase):
                 ACCESS_TOKEN_KEY,
                 ACCESS_TOKEN_SECRET
             )
+
+            mock_parser = MagicMock(spec=argparse.ArgumentParser)
+            reserved_file_num = 10
+            mock_parser.parse_args.return_value.reply_to_user_name = "dummy_screen_name"
+            mock_parser.parse_args.return_value.disable_after_open = True
+            mock_parser.parse_args.return_value.reserved_file_num = reserved_file_num
+            core = Core(mock_parser)
+            self.assertTrue(core.config["notification"].getboolean("is_notify"))
+            self.assertEqual("dummy_screen_name", core.config["notification"]["reply_to_user_name"])
+            self.assertFalse(core.config["after_open"].getboolean("is_after_open"))
+            self.assertTrue(core.config["move_old_file"].getboolean("is_move_old_file"))
+            self.assertEqual(str(reserved_file_num), core.config["move_old_file"]["reserved_file_num"])
             config.clear()
 
     def test_run(self):

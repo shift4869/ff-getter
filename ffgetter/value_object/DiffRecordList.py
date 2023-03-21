@@ -9,6 +9,11 @@ from ffgetter.value_object.UserRecordList import UserRecordList
 
 @dataclass(frozen=True)
 class DiffRecordList(Iterable):
+    """差分レコードリスト
+
+    Args:
+        _list (list[DiffRecord]): 差分レコードのリスト
+    """
     _list: list[DiffRecord]
 
     def __post_init__(self) -> None:
@@ -28,6 +33,18 @@ class DiffRecordList(Iterable):
 
     @classmethod
     def create(cls, diff_record_list: list[DiffRecord] | DiffRecord | None = None) -> Self:
+        """差分レコードリスト作成
+
+        引数の型を見て差分レコードリストを作成する
+        None の場合は要素が空の差分レコードリストを返す
+
+        Args:
+            diff_record_list (list[DiffRecord], DiffRecord, optional):
+                差分レコードのリスト, 差分レコード, None のいずれか
+
+        Returns:
+            Self: 差分レコードリスト
+        """
         if isinstance(diff_record_list, list):
             if all([isinstance(r, DiffRecord) for r in diff_record_list]):
                 return cls(diff_record_list)
@@ -38,6 +55,20 @@ class DiffRecordList(Iterable):
 
     @classmethod
     def create_from_diff(cls, p_list: UserRecordList, q_list: UserRecordList) -> Self:
+        """2つのレコードリストから差分レコードリストを作成する
+
+        p_list, q_list のどちらかが空ならば、空の差分レコードリストを返す
+        p_list, q_list の要素のIDをそれぞれ収集し、排他的論理和にて差分を得る
+        p_list に存在するが q_list に存在しないものは DiffType.ADD,
+        p_list に存在しないが q_list に存在するものは DiffType.REMOVE が割り当てられる
+
+        Args:
+            p_list (UserRecordList): レコードリスト(基準)
+            q_list (UserRecordList): レコードリスト(変更後想定)
+
+        Returns:
+            Self: 差分レコードリスト
+        """
         p1_list = deepcopy(p_list)
         q1_list = deepcopy(q_list)
 
@@ -85,11 +116,15 @@ class DiffRecordList(Iterable):
 
 @dataclass(frozen=True)
 class DiffFollowingList(DiffRecordList):
+    """Following 差分レコードリスト
+    """
     pass
 
 
 @dataclass(frozen=True)
 class DiffFollowerList(DiffRecordList):
+    """Follower 差分レコードリスト
+    """
     pass
 
 

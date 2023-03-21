@@ -9,12 +9,22 @@ from ffgetter.value_object.UserName import UserName
 
 
 class DiffType(Enum):
+    """差分タイプ
+    """
     ADD = "ADD"
     REMOVE = "REMOVE"
 
 
 @dataclass(frozen=True)
 class DiffRecord():
+    """差分レコード
+
+    Args:
+        _diff_type (DiffType): 差分タイプ
+        _id (UserId): ユーザID
+        _name (UserName): ユーザ名
+        _screen_name (ScreenName): スクリーンネーム
+    """
     _diff_type: DiffType
     _id: UserId
     _name: UserName
@@ -48,6 +58,11 @@ class DiffRecord():
 
     @property
     def line(self) -> str:
+        """レコードを1行として文字列に変換
+
+        Returns:
+            str: カンマ区切りの1行文字列
+        """
         data_line = "{}, {}, {}, {}".format(
             self._diff_type.value,
             self._id.id_str,
@@ -58,6 +73,17 @@ class DiffRecord():
 
     @classmethod
     def create(cls, diff_type_str: str, id_str: str, name: str, screen_name: str) -> Self:
+        """差分レコード作成
+
+        Args:
+            diff_type_str (str): 差分タイプ
+            id_str (str): ユーザID
+            name (str): ユーザ名
+            screen_name (str): スクリーンネーム
+
+        Returns:
+            Self : 差分レコードインスタンス
+        """
         diff_type = None
         if diff_type_str == "ADD":
             diff_type = DiffType.ADD
@@ -73,11 +99,15 @@ class DiffRecord():
 
 @dataclass(frozen=True)
 class DiffFollowing(DiffRecord):
+    """Following 差分レコード
+    """
     pass
 
 
 @dataclass(frozen=True)
 class DiffFollower(DiffRecord):
+    """Follower 差分レコード
+    """
     pass
 
 

@@ -7,6 +7,11 @@ from ffgetter.value_object.UserRecord import Follower, Following, UserRecord
 
 @dataclass(frozen=True)
 class UserRecordList(Iterable):
+    """レコードリスト
+
+    Args:
+        _list (list[UserRecord]): レコードのリスト
+    """
     _list: list[UserRecord]
 
     def __post_init__(self) -> None:
@@ -26,6 +31,18 @@ class UserRecordList(Iterable):
 
     @classmethod
     def create(cls, user_record_list: list[UserRecord] | UserRecord | None = None) -> Self:
+        """レコードリスト作成
+
+        引数の型を見てレコードリストを作成する
+        None の場合は要素が空のレコードリストを返す
+
+        Args:
+            user_record_list (list[UserRecord], UserRecord, optional):
+                レコードのリスト, レコード, None のいずれか
+
+        Returns:
+            Self: レコードリスト
+        """
         if isinstance(user_record_list, list):
             if all([isinstance(r, UserRecord) for r in user_record_list]):
                 return cls(user_record_list)
@@ -37,11 +54,15 @@ class UserRecordList(Iterable):
 
 @dataclass(frozen=True)
 class FollowingList(UserRecordList):
+    """Following レコードリスト
+    """
     pass
 
 
 @dataclass(frozen=True)
 class FollowerList(UserRecordList):
+    """Follower レコードリスト
+    """
     pass
 
 

@@ -5,6 +5,16 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ScreenName():
+    """スクリーンネーム
+
+    半角英数とアンダーバーのみで構成される
+
+    Args:
+        _name (str): スクリーンネーム
+
+    Attributes:
+        PATTERN (str): スクリーンネームとして許容されるパターン
+    """
     _name: str
 
     PATTERN = "^[0-9a-zA-Z_]+$"

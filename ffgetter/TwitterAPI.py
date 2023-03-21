@@ -22,6 +22,8 @@ logger.setLevel(INFO)
 
 
 class TwitterAPIEndpoint(Enum):
+    """TwitterAPI エンドポイント
+    """
     USER_LOOKUP_ME = "https://api.twitter.com/2/users/me"
     FOLLOWING = "https://api.twitter.com/2/users/{}/following"
     FOLLOWERS = "https://api.twitter.com/2/users/{}/followers"
@@ -30,6 +32,17 @@ class TwitterAPIEndpoint(Enum):
 
 @dataclass
 class TwitterAPI():
+    """TwitterAPI 利用を司るクラス
+
+    Args:
+        api_key (str): APIキー
+        api_secret (str): APIキーシークレット
+        access_token_key (str): アクセストークンキー
+        access_token_secret (str): アクセストークンシークレット
+
+    Attributes:
+        oauth (OAuth1Session): 認証セッション
+    """
     api_key: str
     api_secret: str
     access_token_key: str
@@ -37,6 +50,10 @@ class TwitterAPI():
     oauth: ClassVar[OAuth1Session]
 
     def __post_init__(self) -> None:
+        """初期化後処理
+
+        バリデーションとセッション作成
+        """
         if not isinstance(self.api_key, str):
             raise TypeError("api_key must be str.")
         if not isinstance(self.api_secret, str):
@@ -71,11 +88,11 @@ class TwitterAPI():
         sys.stdout.flush()
         time.sleep(seconds)
 
-    def _wait_until_reset(self, response: dict) -> None:
+    def _wait_until_reset(self, response: requests.Response) -> None:
         """TwitterAPIが利用できるまで待つ
 
         Args:
-            response (dict): 利用できるまで待つTwitterAPIを使ったときのレスポンス
+            response (requests.Response): 利用できるまで待つTwitterAPIを使ったときのレスポンス
 
         Raises:
             HTTPError: レスポンスヘッダにx-rate-limit-remaining and x-rate-limit-reset が入ってない場合
@@ -185,6 +202,12 @@ class TwitterAPI():
 
     def get_user_id(self) -> UserId:
         """ユーザID取得
+
+        API返り値は以下のとおり
+        response = {"data": {"id": "123456789"}}
+
+        Returns:
+            UserId: ユーザID
         """
         url = TwitterAPIEndpoint.USER_LOOKUP_ME.value
         res = self.get(url, params={})
@@ -195,7 +218,20 @@ class TwitterAPI():
         return UserId(user_id_num)
 
     def get_following(self, user_id: UserId) -> FollowingList:
-        """フォローしているユーザを取得
+        """フォローしているユーザ(following)を取得
+
+        API返り値は以下のとおり
+        response = {
+            "data": [
+                {"id": "123456789", "name": "ユーザーネーム", "username": "screen_name"},
+            ],
+            "meta": {
+                "pagination_token": "xxx"
+            }
+        }
+
+        Returns:
+            FollowingList: following リスト
         """
         MAX_RESULTS = 1000
         url = TwitterAPIEndpoint.FOLLOWING.value.format(user_id.id)
@@ -226,7 +262,20 @@ class TwitterAPI():
         return FollowingList.create(following_list)
 
     def get_follower(self, user_id: UserId) -> FollowerList:
-        """フォローされているユーザを取得
+        """フォローされているユーザ(follower)を取得
+
+        API返り値は以下のとおり
+        response = {
+            "data": [
+                {"id": "123456789", "name": "ユーザー名", "username": "screen_name"},
+            ],
+            "meta": {
+                "pagination_token": "xxx"
+            }
+        }
+
+        Returns:
+            FollowerList: follower リスト
         """
         MAX_RESULTS = 1000
         url = TwitterAPIEndpoint.FOLLOWERS.value.format(user_id.id)
@@ -264,6 +313,10 @@ class TwitterAPI():
 
         Returns:
             response (dict): post後のレスポンス
+                "data": {
+                    "id": "xxxxxxxxxxxxxxxxxxxx",
+                    "text": "posted text."
+                }
         """
         url = TwitterAPIEndpoint.POST_TWEET.value
         params = {

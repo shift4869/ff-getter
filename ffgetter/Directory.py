@@ -15,14 +15,34 @@ from ffgetter.value_object.UserRecordList import FollowerList, FollowingList
 
 @dataclass(frozen=True)
 class Directory():
+    """ディレクトリ操作を司るクラス
+
+    カレントディレクトリはこのファイルが存在する一つ上のディレクトリとなる
+    通常は ./FFGetter/ がカレントディレクトリとなる
+
+    Args:
+        None
+
+    Attributes:
+        base_path (Path): 基準となるパス
+        CONFIG_FILE_PATH (str): config 設定ファイルがあるパス
+        TEMPLATE_FILE_PATH (str): 出力内容のテンプレートファイルパス, デフォルトは"./ext/template.txt"
+        FILE_NAME_BASE (str): 保存する際の基幹ファイル名, デフォルトは"ff_list"
+        RESULT_DIRECTORY (str): 保存する際の結果保存ディレクトリ, デフォルトは"./result/"
+        BACKUP_DIRECTORY (str): 古い結果を移動させる先のディレクトリ, デフォルトは"./bak/"
+    """
     base_path: ClassVar[Path]
 
     FILE_NAME_BASE = "ff_list"
+    TEMPLATE_FILE_PATH = "./ext/template.txt"
     RESULT_DIRECTORY = "./result/"
     BACKUP_DIRECTORY = "./bak/"
-    TEMPLATE_FILE_PATH = "./ext/template.txt"
 
     def __post_init__(self) -> None:
+        """初期化後処理
+
+        カレントディレクトリをこのファイルが存在する一つ上のディレクトリとして設定する
+        """
         object.__setattr__(self, "base_path", Path(os.path.dirname(__file__)).parent)
         self.set_current()
 
@@ -39,7 +59,7 @@ class Directory():
         """前回実行ファイルのパスを取得する
 
         Returns:
-            last_file_path (Path | None): 前回実行ファイルのパス, 存在しない場合None
+            last_file_path (Path | None): 前回実行ファイルのパス, 存在しないまたは初回実行の場合None
         """
         last_file_path: Path
 
@@ -66,7 +86,13 @@ class Directory():
 
     def get_last_following(self) -> FollowingList:
         """前回実行ファイル中から following を取得する
+
+        Returns:
+            prev_following_list (FollowingList):
+                前回実行ファイルから抽出した FollowingList
+                前回実行ファイルが存在しない場合も FollowingList は返却されるが、その要素は空となる
         """
+        # 前回実行ファイルパス取得
         last_file_path = self.get_last_file_path()
         if not last_file_path:
             return FollowingList.create()
@@ -97,7 +123,13 @@ class Directory():
 
     def get_last_follower(self) -> FollowerList:
         """前回実行ファイル中から follower を取得する
+
+        Returns:
+            prev_follower_list (FollowerList):
+                前回実行ファイルから抽出した FollowerList
+                前回実行ファイルが存在しない場合も FollowerList は返却されるが、その要素は空となる
         """
+        # 前回実行ファイルパス取得
         last_file_path = self.get_last_file_path()
         if not last_file_path:
             return FollowerList.create()
@@ -131,19 +163,32 @@ class Directory():
                   follower_list: FollowerList,
                   diff_following_list: DiffFollowingList,
                   diff_follower_list: DiffFollowerList) -> str:
-        """結果をファイルに保存
+        """結果をファイルに保存する
+
+        Args:
+            following_list (FollowingList): 今回取得した FollowingList
+            follower_list (FollowerList): 今回取得した FollowerList
+            diff_following_list (DiffFollowingList): 前回との差分を格納した DiffFollowingList
+            diff_follower_list (DiffFollowerList): 前回との差分を格納した DiffFollowerList
+
+        Returns:
+            rendered_str (str): テンプレートに各種情報を埋め込んだ後の出力文字列
         """
+        # 前回ファイルがあるならパスを取得
         last_file_path: Path | None = self.get_last_file_path()
 
+        # 保存ファイルパスを生成
         today_datetime = datetime.date.today()
         today_str = today_datetime.strftime("%Y%m%d")
         file_path = Path(self.RESULT_DIRECTORY) / f"{self.FILE_NAME_BASE}_{today_str}.txt"
 
+        # 引数のリストを文字列リストに変換
         t_following_list = [r.line + "\n" for r in following_list]
         t_follower_list = [r.line + "\n" for r in follower_list]
         t_diff_following_list = [r.line + "\n" for r in diff_following_list]
         t_diff_follower_list = [r.line + "\n" for r in diff_follower_list]
 
+        # 各プロックのキャプション設定
         following_num = len(t_following_list)
         follower_num = len(t_follower_list)
         following_caption = f"following {following_num}"
@@ -154,10 +199,12 @@ class Directory():
         else:
             difference_caption = f"difference with nothing (first run)"
 
+        # テンプレートファイル読み込み
         template_str = ""
         with Path(self.TEMPLATE_FILE_PATH).open("r") as fin:
             template_str = fin.read()
 
+        # レンダリング
         template: Template = Template(template_str)
         rendered_str = template.render({
             "today_str": today_str,
@@ -170,6 +217,7 @@ class Directory():
             "diff_follower_list": t_diff_follower_list,
         })
 
+        # ファイル保存
         with file_path.open("w", encoding="utf-8") as fout:
             fout.write(rendered_str)
         return rendered_str

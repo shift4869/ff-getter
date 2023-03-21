@@ -9,6 +9,13 @@ from ffgetter.value_object.UserName import UserName
 
 @dataclass(frozen=True)
 class UserRecord():
+    """レコード
+
+    Args:
+        _id (UserId): ユーザID
+        _name (UserName): ユーザ名
+        _screen_name (ScreenName): スクリーンネーム
+    """
     _id: UserId
     _name: UserName
     _screen_name: ScreenName
@@ -35,6 +42,11 @@ class UserRecord():
 
     @property
     def line(self) -> str:
+        """レコードを1行として文字列に変換
+
+        Returns:
+            str: カンマ区切りの1行文字列
+        """
         data_line = "{}, {}, {}".format(
             self._id.id_str,
             self._name.name,
@@ -51,6 +63,8 @@ class UserRecord():
 
     @classmethod
     def create(cls, id_str: str, name: str, screen_name: str) -> Self:
+        """レコード作成
+        """
         user_id = UserId(int(id_str))
         user_name = UserName(name)
         screen_name = ScreenName(screen_name)
@@ -59,11 +73,15 @@ class UserRecord():
 
 @dataclass(frozen=True)
 class Following(UserRecord):
+    """Following レコード
+    """
     pass
 
 
 @dataclass(frozen=True)
 class Follower(UserRecord):
+    """Follower レコード
+    """
     pass
 
 

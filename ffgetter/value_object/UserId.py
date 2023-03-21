@@ -4,6 +4,14 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class UserId():
+    """ユーザID
+
+    Args:
+        _id (int): ユーザID
+
+    Attributes:
+        id_str (str): ユーザIDを文字列に変換したもの
+    """
     _id: int
 
     def __post_init__(self) -> None:

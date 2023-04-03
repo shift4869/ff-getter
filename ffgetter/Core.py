@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from ffgetter.Directory import Directory
+from ffgetter.noapi.NoAPIFFFetcherBase import NoAPIFollowerFetcher, NoAPIFollowingFetcher
 from ffgetter.TwitterAPI import TwitterAPI
 from ffgetter.value_object.DiffRecordList import DiffFollowerList, DiffFollowingList
 from ffgetter.value_object.ScreenName import ScreenName
@@ -101,9 +102,21 @@ class Core():
         """
         try:
             # (1)TwitterAPI を使用してffを取得
-            user_id = self.twitter_api.get_user_id()
-            following_list = self.twitter_api.get_following(user_id)
-            follower_list = self.twitter_api.get_follower(user_id)
+            following_list = None
+            follower_list = None
+            if self.config["twitter_noapi"].getboolean("is_twitter_noapi"):
+                username = self.config["twitter_noapi"]["username"]
+                password = self.config["twitter_noapi"]["password"]
+                target_username = self.config["twitter_noapi"]["target_username"]
+
+                following_fetcher = NoAPIFollowingFetcher(username, password, target_username)
+                following_list = following_fetcher.fetch()
+                follower_fetcher = NoAPIFollowerFetcher(username, password, target_username)
+                follower_list = follower_fetcher.fetch()
+            else:
+                user_id = self.twitter_api.get_user_id()
+                following_list = self.twitter_api.get_following(user_id)
+                follower_list = self.twitter_api.get_follower(user_id)
 
             # (2)前回実行ファイルより前回のffを取得
             directory = Directory()
@@ -160,7 +173,7 @@ if __name__ == "__main__":
     import logging.config
     logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
     for name in logging.root.manager.loggerDict:
-        if __name__ not in name:
+        if "ffgetter" not in name:
             getLogger(name).disabled = True
     core = Core()
     logger.info(core.run())

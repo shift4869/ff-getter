@@ -1,0 +1,397 @@
+# coding: utf-8
+import asyncio
+import json
+import pprint
+import random
+import shutil
+from logging import INFO, getLogger
+from pathlib import Path
+from typing import Literal
+
+from pyppeteer.page import Page
+from requests.models import Response
+from requests_html import HTML
+
+from ffgetter.noapi.Password import Password
+from ffgetter.noapi.TwitterSession import TwitterSession
+from ffgetter.noapi.Username import Username
+from ffgetter.value_object.UserRecord import Follower, Following
+from ffgetter.value_object.UserRecordList import FollowerList, FollowingList
+
+logger = getLogger(__name__)
+logger.setLevel(INFO)
+
+
+class NoAPIFFFetcher():
+    username: Username
+    password: Password
+    target_username: Username
+    twitter_session: TwitterSession
+    redirect_urls: list[str]
+    content_list: list[str]
+
+    # キャッシュファイルパス
+    TWITTER_CACHE_PATH = Path(__file__).parent / "cache/"
+
+    def __init__(self, username: Username | str, password: Password | str, target_username: Username | str) -> None:
+        if isinstance(username, str):
+            username = Username(username)
+        if isinstance(password, str):
+            password = Password(password)
+        if isinstance(target_username, str):
+            target_username = Username(target_username)
+
+        if not (isinstance(username, Username) and username.name != ""):
+            raise ValueError("username is not Username or empty.")
+        if not (isinstance(password, Password) and password.password != ""):
+            raise ValueError("password is not Password or empty.")
+        if not (isinstance(target_username, Username) and target_username.name != ""):
+            raise ValueError("password is not Username or empty.")
+
+        self.username = username
+        self.password = password
+        self.target_username = target_username
+        self.twitter_session = TwitterSession.create(username=username, password=password)
+        self.redirect_urls = []
+        self.content_list = []
+
+    async def _response_listener(self, response: Response) -> None:
+        base_path = Path(self.TWITTER_CACHE_PATH)
+        base_path.mkdir(parents=True, exist_ok=True)
+
+        # レスポンス監視用リスナー
+        if "Following" in response.url:
+            # レスポンスが Following 関連ならば
+            self.redirect_urls.append(response.url)
+            if "application/json" in response.headers.get("content-type", ""):
+                # レスポンスがJSONならばキャッシュに保存
+                content = await response.json()
+                n = len(self.content_list)
+                with Path(base_path / f"content_cache{n}.txt").open("w", encoding="utf8") as fout:
+                    json.dump(content, fout)
+                self.content_list.append(content)
+
+    async def get_following_jsons(self, max_scroll: int = 40, each_scroll_wait: float = 1.5) -> list[dict]:
+        """following ページをクロールしてロード時のJSONをキャプチャする
+
+        Args:
+            max_scroll (int): 画面スクロールの最大回数. デフォルトは40[回].
+            each_scroll_wait (float): それぞれの画面スクロール時に待つ秒数. デフォルトは1.5[s].
+
+        Notes:
+            対象URLは "https://twitter.com/{self.target_username.name}/following"
+                (self.twitter_session.FOLLOWING_TEMPLATE.format(self.target_username.name))
+            実行には少なくとも max_scroll * each_scroll_wait [s] 秒かかる
+            キャッシュは self.TWITTER_CACHE_PATH に保存される
+
+        Returns:
+            list[dict]: ツイートオブジェクトを表すJSONリスト
+        """
+        logger.info("Fetched Tweet by No API -> start")
+
+        # セッション使用準備
+        await self.twitter_session.prepare()
+        logger.info("session use prepared.")
+
+        # following ページに遷移
+        # スクロール操作を行うため、pageを保持しておく
+        url = self.twitter_session.FOLLOWING_TEMPLATE.format(self.target_username.name)
+        res = await self.twitter_session.get(url)
+        await res.html.arender(keep_page=True)
+        html: HTML = res.html
+        page: Page = html.page
+        logger.info("Getting following page is success.")
+
+        # キャッシュ保存場所の準備
+        self.redirect_urls = []
+        self.content_list = []
+        base_path = Path(self.TWITTER_CACHE_PATH)
+        if base_path.is_dir():
+            shutil.rmtree(base_path)
+        base_path.mkdir(parents=True, exist_ok=True)
+
+        # レスポンス監視用リスナー
+        page.on("response", lambda response: asyncio.ensure_future(self._response_listener(response)))
+
+        # スクロール時の待ち秒数をランダムに生成するメソッド
+        def get_wait_millisecond() -> float:
+            pn = (random.random() - 0.5) * 1.0  # [-0.5, 0.5)
+            candidate_sec = (pn + each_scroll_wait) * 1000.0
+            return float(max(candidate_sec, 1000.0))  # [1000.0, 2000.0)
+
+        # following ページをスクロールして読み込んでいく
+        # ページ下部に達した時に次のツイートが読み込まれる
+        # このときレスポンス監視用リスナーがレスポンスをキャッチする
+        logger.info("Getting following page fetched -> start")
+        for i in range(max_scroll):
+            await page.evaluate("""
+                () => {
+                    let elm = document.documentElement;
+                    let bottom = elm.scrollHeight - elm.clientHeight;
+                    window.scroll(0, bottom);
+                }
+            """)
+            await page.waitFor(
+                get_wait_millisecond()
+            )
+            logger.info(f"({i+1}/{max_scroll}) pages fetched.")
+        await page.waitFor(2000)
+        logger.info("Getting following page fetched -> done")
+
+        # リダイレクトURLをキャッシュに保存
+        if self.redirect_urls:
+            with Path(base_path / "redirect_urls.txt").open("w", encoding="utf8") as fout:
+                fout.write(pprint.pformat(self.redirect_urls))
+
+        # キャッシュから読み込み
+        # content_list と result はほぼ同一の内容になる
+        # 違いは result は json.dump→json.load したときに、エンコード等が吸収されていること
+        result: list[dict] = []
+        for i, content in enumerate(self.content_list):
+            with Path(base_path / f"content_cache{i}.txt").open("r", encoding="utf8") as fin:
+                json_dict = json.load(fin)
+                result.append(json_dict)
+
+        logger.info("Fetched Tweet by No API -> done")
+        return result
+
+    async def get_follower_jsons(self, max_scroll: int = 40, each_scroll_wait: float = 1.5) -> list[dict]:
+        """follower ページをクロールしてロード時のJSONをキャプチャする
+
+        Args:
+            max_scroll (int): 画面スクロールの最大回数. デフォルトは40[回].
+            each_scroll_wait (float): それぞれの画面スクロール時に待つ秒数. デフォルトは1.5[s].
+
+        Notes:
+            対象URLは "https://twitter.com/{self.target_username.name}/follower"
+                (self.twitter_session.FOLLOWING_TEMPLATE.format(self.target_username.name))
+            実行には少なくとも max_scroll * each_scroll_wait [s] 秒かかる
+            キャッシュは self.TWITTER_CACHE_PATH に保存される
+
+        Returns:
+            list[dict]: ツイートオブジェクトを表すJSONリスト
+        """
+        logger.info("Fetched Tweet by No API -> start")
+
+        # セッション使用準備
+        await self.twitter_session.prepare()
+        logger.info("session use prepared.")
+
+        # follower ページに遷移
+        # スクロール操作を行うため、pageを保持しておく
+        url = self.twitter_session.FOLLOWER_TEMPLATE.format(self.target_username.name)
+        res = await self.twitter_session.get(url)
+        await res.html.arender(keep_page=True)
+        html: HTML = res.html
+        page: Page = html.page
+        logger.info("Getting following page is success.")
+
+        # キャッシュ保存場所の準備
+        self.redirect_urls = []
+        self.content_list = []
+        base_path = Path(self.TWITTER_CACHE_PATH)
+        if base_path.is_dir():
+            shutil.rmtree(base_path)
+        base_path.mkdir(parents=True, exist_ok=True)
+
+        # レスポンス監視用リスナー
+        page.on("response", lambda response: asyncio.ensure_future(self._response_listener(response)))
+
+        # スクロール時の待ち秒数をランダムに生成するメソッド
+        def get_wait_millisecond() -> float:
+            pn = (random.random() - 0.5) * 1.0  # [-0.5, 0.5)
+            candidate_sec = (pn + each_scroll_wait) * 1000.0
+            return float(max(candidate_sec, 1000.0))  # [1000.0, 2000.0)
+
+        # following ページをスクロールして読み込んでいく
+        # ページ下部に達した時に次のツイートが読み込まれる
+        # このときレスポンス監視用リスナーがレスポンスをキャッチする
+        logger.info("Getting following page fetched -> start")
+        for i in range(max_scroll):
+            await page.evaluate("""
+                () => {
+                    let elm = document.documentElement;
+                    let bottom = elm.scrollHeight - elm.clientHeight;
+                    window.scroll(0, bottom);
+                }
+            """)
+            await page.waitFor(
+                get_wait_millisecond()
+            )
+            logger.info(f"({i+1}/{max_scroll}) pages fetched.")
+        await page.waitFor(2000)
+        logger.info("Getting following page fetched -> done")
+
+        # リダイレクトURLをキャッシュに保存
+        if self.redirect_urls:
+            with Path(base_path / "redirect_urls.txt").open("w", encoding="utf8") as fout:
+                fout.write(pprint.pformat(self.redirect_urls))
+
+        # キャッシュから読み込み
+        # content_list と result はほぼ同一の内容になる
+        # 違いは result は json.dump→json.load したときに、エンコード等が吸収されていること
+        result: list[dict] = []
+        for i, content in enumerate(self.content_list):
+            with Path(base_path / f"content_cache{i}.txt").open("r", encoding="utf8") as fin:
+                json_dict = json.load(fin)
+                result.append(json_dict)
+
+        logger.info("Fetched Tweet by No API -> done")
+        return result
+
+    def interpret_json(self, json_dict: dict) -> dict:
+        """辞書構成をたどる
+        """
+        if not isinstance(json_dict, dict):
+            raise TypeError("argument tweet is not dict.")
+
+        match json_dict:
+            case {
+                "content": {
+                    "itemContent": {
+                        "user_results": {
+                            "result": result
+                        }
+                    },
+                },
+            }:
+                id_str = result.get("rest_id", "")
+                name = result.get("legacy", {}).get("name", "")
+                screen_name = result.get("legacy", {}).get("screen_name", "")
+                return {
+                    "id_str": id_str,
+                    "name": name,
+                    "screen_name": screen_name,
+                }
+
+        # raise ValueError("json_dict struct is invalid, getting failed Following.")
+        return {}
+
+    def fetch(self, fetch_type: Literal["following", "follower"]) -> list[dict]:
+        fetch_func = None
+        match fetch_type:
+            case "following":
+                fetch_func = self.get_following_jsons
+            case "follower":
+                fetch_func = self.get_follower_jsons
+            case _:
+                return []
+        result = self.twitter_session.loop.run_until_complete(fetch_func())
+        return result
+
+    def fetch_following(self) -> list[dict]:
+        return self.fetch("following")
+
+    def fetch_follower(self) -> list[dict]:
+        return self.fetch("follower")
+
+    def to_convert_FollowingList(self, fetched_jsons: list[dict]) -> FollowingList:
+        if not isinstance(fetched_jsons, list):
+            return []
+        if not isinstance(fetched_jsons[0], dict):
+            return []
+
+        # 辞書パース
+        following_data_list: list[Following] = []
+        for r in fetched_jsons:
+            instructions = r.get("data", {}) \
+                            .get("user", {}) \
+                            .get("result", {}) \
+                            .get("timeline", {}) \
+                            .get("timeline", {}) \
+                            .get("instructions", [{}])
+            if not instructions:
+                continue
+            for instruction in instructions:
+                entries: list[dict] = instruction.get("entries", [])
+                if not entries:
+                    continue
+                for entry in entries:
+                    data_dict = self.interpret_json(entry)
+                    if not data_dict:
+                        continue
+                    following_data = Following.create(
+                        data_dict.get("id_str", ""),
+                        data_dict.get("name", ""),
+                        data_dict.get("screen_name", ""),
+                    )
+                    following_data_list.append(following_data)
+
+        if not following_data_list:
+            # 辞書パースエラー or 1件も無かった
+            return []
+        return FollowingList.create(following_data_list)
+
+    def to_convert_FollowerList(self, fetched_jsons: list[dict]) -> FollowerList:
+        if not isinstance(fetched_jsons, list):
+            return []
+        if not isinstance(fetched_jsons[0], dict):
+            return []
+
+        # 辞書パース
+        follower_data_list: list[Following] = []
+        for r in fetched_jsons:
+            instructions = r.get("data", {}) \
+                            .get("user", {}) \
+                            .get("result", {}) \
+                            .get("timeline", {}) \
+                            .get("timeline", {}) \
+                            .get("instructions", [{}])
+            if not instructions:
+                continue
+            for instruction in instructions:
+                entries: list[dict] = instruction.get("entries", [])
+                if not entries:
+                    continue
+                for entry in entries:
+                    data_dict = self.interpret_json(entry)
+                    if not data_dict:
+                        continue
+                    follower_data = Follower.create(
+                        data_dict.get("id_str", ""),
+                        data_dict.get("name", ""),
+                        data_dict.get("screen_name", ""),
+                    )
+                    follower_data_list.append(follower_data)
+
+        if not follower_data_list:
+            # 辞書パースエラー or 1件も無かった
+            return []
+        return FollowerList.create(follower_data_list)
+
+
+if __name__ == "__main__":
+    import configparser
+    import logging.config
+
+    logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
+    CONFIG_FILE_NAME = "./config/config.ini"
+    config_parser = configparser.ConfigParser()
+    if not config_parser.read(CONFIG_FILE_NAME, encoding="utf8"):
+        raise IOError
+
+    config = config_parser["twitter_noapi"]
+
+    if config.getboolean("is_twitter_noapi"):
+        username = config["username"]
+        password = config["password"]
+        target_username = config["target_username"]
+        fetcher = NoAPIFFFetcher(Username(username), Password(password), Username(target_username))
+
+        # fetcher取得
+        fetched_json = fetcher.fetch_following()
+
+        # キャッシュから読み込み
+        # base_path = Path(fetcher.TWITTER_CACHE_PATH)
+        # fetched_json = []
+        # for cache_path in base_path.glob("*content_cache*"):
+        #     with cache_path.open("r", encoding="utf8") as fin:
+        #         json_dict = json.load(fin)
+        #         fetched_json.append(json_dict)
+
+        following_list = fetcher.to_convert_FollowingList(fetched_json)
+        pprint.pprint(len(following_list))
+
+        fetched_json = fetcher.fetch_follower()
+        follower_list = fetcher.to_convert_FollowerList(fetched_json)
+        pprint.pprint(len(follower_list))

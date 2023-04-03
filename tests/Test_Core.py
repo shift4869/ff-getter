@@ -130,6 +130,7 @@ class TestCore(unittest.TestCase):
             # 正常系
             # すべての分岐でTrueとなるパターン
             core = Core()
+            core.config["twitter_noapi"]["is_twitter_noapi"] = "False"
             core.config["notification"]["is_notify"] = "True"
             core.config["notification"]["reply_to_user_name"] = "dummy_user_name"
             core.config["move_old_file"]["is_move_old_file"] = "True"

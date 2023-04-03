@@ -113,7 +113,7 @@ class NoAPIFFFetcherBase():
         await res.html.arender(keep_page=True)
         html: HTML = res.html
         page: Page = html.page
-        logger.info(f"Getting {self.ff_type} page is success.")
+        logger.info(f"Opening {self.ff_type} page is success.")
 
         # キャッシュ保存場所の準備
         self.redirect_urls = []
@@ -135,6 +135,7 @@ class NoAPIFFFetcherBase():
         # ff_type ページをスクロールして読み込んでいく
         # ページ下部に達した時に次のツイートが読み込まれる
         # このときレスポンス監視用リスナーがレスポンスをキャッチする
+        # TODO::終端までスクロールしたことを検知する
         logger.info(f"Getting {self.ff_type} page fetched -> start")
         for i in range(max_scroll):
             await page.evaluate("""
@@ -194,12 +195,6 @@ class NoAPIFFFetcherBase():
                 }
         return {}
 
-    def fetch(self) -> FollowingList | FollowerList:
-        fetched_json = self.twitter_session.loop.run_until_complete(self.fetch_jsons())
-        result = self.to_convert(fetched_json)
-        # pprint.pprint(len(result))
-        return result
-
     def to_convert(self, fetched_jsons: list[dict]) -> FollowingList | FollowerList:
         if not isinstance(fetched_jsons, list):
             return []
@@ -226,18 +221,18 @@ class NoAPIFFFetcherBase():
                     if not data_dict:
                         continue
                     if self.ff_type == "following":
-                        following_data = Following.create(
+                        ff_data = Following.create(
                             data_dict.get("id_str", ""),
                             data_dict.get("name", ""),
                             data_dict.get("screen_name", ""),
                         )
                     elif self.ff_type == "follower":
-                        following_data = Follower.create(
+                        ff_data = Follower.create(
                             data_dict.get("id_str", ""),
                             data_dict.get("name", ""),
                             data_dict.get("screen_name", ""),
                         )
-                    data_list.append(following_data)
+                    data_list.append(ff_data)
         if not data_list:
             # 辞書パースエラー or 1件も無かった
             return []
@@ -247,6 +242,12 @@ class NoAPIFFFetcherBase():
         elif self.ff_type == "follower":
             return FollowerList.create(data_list)
         return []
+
+    def fetch(self) -> FollowingList | FollowerList:
+        fetched_jsons = self.twitter_session.loop.run_until_complete(self.fetch_jsons())
+        result = self.to_convert(fetched_jsons)
+        # pprint.pprint(len(result))
+        return result
 
 
 class NoAPIFollowingFetcher(NoAPIFFFetcherBase):

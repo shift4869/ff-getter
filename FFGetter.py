@@ -1,7 +1,9 @@
 # coding: utf-8
 import argparse
 import logging.config
+import os
 from logging import INFO, getLogger
+from pathlib import Path
 
 from ffgetter.Core import Core
 from ffgetter.LogMessage import Message as Msg
@@ -10,9 +12,11 @@ logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
 for name in logging.root.manager.loggerDict:
     if "ffgetter" not in name:
         getLogger(name).disabled = True
-    
+
 logger = getLogger(__name__)
 logger.setLevel(INFO)
+
+prevent_multiple_run_path = Path(os.path.dirname(__file__)) / "./prevent_multiple_run"
 
 if __name__ == "__main__":
     logger.info(Msg.HORIZONTAL_LINE())
@@ -38,9 +42,15 @@ if __name__ == "__main__":
         exit(-1)
 
     try:
-        core = Core(parser)
-        core.run()
+        if not prevent_multiple_run_path.exists():
+            prevent_multiple_run_path.touch()
+            core = Core(parser)
+            core.run()
+        else:
+            logger.warning(Msg.APPLICATION_MULTIPLE_RUN())
     except Exception as e:
         logger.error(e)
+    finally:
+        prevent_multiple_run_path.unlink(missing_ok=True)
     logger.info(Msg.APPLICATION_DONE())
     logger.info(Msg.HORIZONTAL_LINE())

@@ -105,7 +105,7 @@ class NoAPIFFFetcherBase():
 
         # セッション使用準備
         await self.twitter_session.prepare()
-        logger.info("session use prepared.")
+        logger.info("Session use prepared.")
 
         # fetch_url ページに遷移
         # スクロール操作を行うため、pageを保持しておく

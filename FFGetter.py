@@ -4,6 +4,7 @@ import logging.config
 from logging import INFO, getLogger
 
 from ffgetter.Core import Core
+from ffgetter.LogMessage import Message as Msg
 
 logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
 for name in logging.root.manager.loggerDict:
@@ -14,6 +15,8 @@ logger = getLogger(__name__)
 logger.setLevel(INFO)
 
 if __name__ == "__main__":
+    logger.info(Msg.HORIZONTAL_LINE())
+    logger.info(Msg.APPLICATION_START())
     parser = None
     try:
         parser = argparse.ArgumentParser(
@@ -39,3 +42,5 @@ if __name__ == "__main__":
         core.run()
     except Exception as e:
         logger.error(e)
+    logger.info(Msg.APPLICATION_DONE())
+    logger.info(Msg.HORIZONTAL_LINE())

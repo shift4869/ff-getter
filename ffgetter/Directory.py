@@ -290,5 +290,5 @@ if __name__ == "__main__":
     rendered_str = directory.save_file(prev_following_list, prev_follower_list, diff_following, diff_following)
     print(rendered_str)
 
-    # res = directory.move_old_file(10)
-    # print(res)
+    res = directory.move_old_file(10)
+    print(res)

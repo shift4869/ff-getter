@@ -197,7 +197,8 @@ class Core():
                 reserved_file_num = int(self.config["move_old_file"]["reserved_file_num"])
                 moved_list = directory.move_old_file(reserved_file_num)
                 if moved_list:
-                    logger.info(Msg.MOVE_OLD_FILE_PATH().format(",".join(moved_list) + "."))
+                    moved_file_list = [str(f) for f in moved_list]
+                    logger.info(Msg.MOVE_OLD_FILE_PATH().format(",".join(moved_file_list) + "."))
                 else:
                     logger.info(Msg.MOVE_OLD_FILE_PATH().format("No File moved."))
                 logger.info(Msg.MOVE_OLD_FILE_DONE())

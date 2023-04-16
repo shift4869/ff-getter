@@ -27,9 +27,9 @@ if __name__ == "__main__":
             description="Following/Follower get.",
             epilog="require config file for ./config/config.ini"
         )
-        parser.add_argument("--reply-to-user-name",
-                            type=str,
-                            help="Notification reply post after process run.")
+        parser.add_argument("--disable-notification",
+                            action="store_true",
+                            help="Notification after process run. Set this option, then don't notify after process run.")
         parser.add_argument("--disable-after-open",
                             action="store_true",
                             help="Result file open after process run. Set this option, then don't open file after process run.")

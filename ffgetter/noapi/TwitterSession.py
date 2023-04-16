@@ -309,6 +309,10 @@ class TwitterSession():
             TwitterSession: TwitterSessionインスタンス
         """
         logger.info("Getting Twitter session -> start")
+        if hasattr(cls, "_twitter_session"):
+            logger.info("Already authorized.")
+            logger.info("Getting Twitter session -> done")
+            return cls._twitter_session
 
         # 以前に接続した時のクッキーとローカルストレージのファイルが存在しているならば
         RETRY_NUM = 5
@@ -317,6 +321,7 @@ class TwitterSession():
                 cookies = Cookies.create()
                 local_storage = LocalStorage.create()
                 twitter_session = TwitterSession(username, password, cookies, local_storage)
+                cls._twitter_session = twitter_session
                 logger.info("Getting Twitter session -> done")
                 return twitter_session
             except FileNotFoundError as e:
@@ -336,6 +341,7 @@ class TwitterSession():
         )
         loop.close()
         twitter_session = TwitterSession(username, password, cookies, local_storage)
+        cls._twitter_session = twitter_session
         logger.info("Getting Twitter session -> done")
         return twitter_session
 

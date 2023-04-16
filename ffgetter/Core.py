@@ -10,6 +10,8 @@ from logging import INFO, getLogger
 from pathlib import Path
 from typing import ClassVar
 
+from plyer import notification
+
 from ffgetter.Directory import Directory
 from ffgetter.LogMessage import Message as Msg
 from ffgetter.noapi.NoAPIFFFetcherBase import NoAPIFollowerFetcher, NoAPIFollowingFetcher
@@ -32,7 +34,7 @@ class FFGetResult(Enum):
     FAILED = auto()
 
 
-@dataclass(frozen=True)
+@dataclass()
 class Core():
     """ffgetter のメイン実行機能を司るクラス
 
@@ -42,12 +44,10 @@ class Core():
     Attributes:
         parser (argparse.ArgumentParser): ArgumentParser インスタンス
         config (configparser.ConfigParser): config 設定
-        twitter_api (TwitterAPI): ツイッターAPI使用クラス, NoAPI指定時None
         CONFIG_FILE_PATH (str): config 設定ファイルがあるパス
     """
     parser: argparse.ArgumentParser | None = None
     config: ClassVar[configparser.ConfigParser]
-    twitter_api: ClassVar[TwitterAPI | None]
 
     CONFIG_FILE_PATH = "./config/config.ini"
 
@@ -63,32 +63,14 @@ class Core():
         config.read_file(Path(self.CONFIG_FILE_PATH).open("r", encoding="utf-8"))
         if self.parser:
             args = self.parser.parse_args()
-            if args.reply_to_user_name:
-                config["notification"]["is_notify"] = "True"
-                config["notification"]["reply_to_user_name"] = ScreenName(args.reply_to_user_name).name
+            if args.disable_notification:
+                config["notification"]["is_notify"] = "False"
             if args.disable_after_open:
                 config["after_open"]["is_after_open"] = "False"
             if args.reserved_file_num:
                 config["move_old_file"]["is_move_old_file"] = "True"
                 config["move_old_file"]["reserved_file_num"] = str(args.reserved_file_num)
-        object.__setattr__(self, "config", config)
-
-        if not config["twitter_noapi"].getboolean("is_twitter_noapi"):
-            config_twitter_token = config["twitter_token_keys_v2"]
-            API_KEY = config_twitter_token["api_key"]
-            API_KEY_SECRET = config_twitter_token["api_key_secret"]
-            ACCESS_TOKEN_KEY = config_twitter_token["access_token"]
-            ACCESS_TOKEN_SECRET = config_twitter_token["access_token_secret"]
-
-            twitter_api = TwitterAPI(
-                API_KEY,
-                API_KEY_SECRET,
-                ACCESS_TOKEN_KEY,
-                ACCESS_TOKEN_SECRET
-            )
-            object.__setattr__(self, "twitter_api", twitter_api)
-        else:
-            object.__setattr__(self, "twitter_api", None)
+        self.config = config
         logger.info(Msg.CORE_INIT_DONE())
 
     def run(self) -> FFGetResult:
@@ -110,35 +92,23 @@ class Core():
         """
         logger.info(Msg.CORE_RUN_START())
         try:
-            # (1)TwitterAPI を使用してffを取得
+            # (1)NoAPIでffを取得
             following_list = None
             follower_list = None
-            if self.config["twitter_noapi"].getboolean("is_twitter_noapi"):
-                logger.info(Msg.NO_API_MODE())
-                username = self.config["twitter_noapi"]["username"]
-                password = self.config["twitter_noapi"]["password"]
-                target_username = self.config["twitter_noapi"]["target_username"]
+            logger.info(Msg.NO_API_MODE())
+            username = self.config["twitter_noapi"]["username"]
+            password = self.config["twitter_noapi"]["password"]
+            target_username = self.config["twitter_noapi"]["target_username"]
 
-                logger.info(Msg.GET_FOLLOWING_LIST_START())
-                following_fetcher = NoAPIFollowingFetcher(username, password, target_username)
-                following_list = following_fetcher.fetch()
-                logger.info(Msg.GET_FOLLOWING_LIST_DONE())
+            logger.info(Msg.GET_FOLLOWING_LIST_START())
+            following_fetcher = NoAPIFollowingFetcher(username, password, target_username)
+            following_list = following_fetcher.fetch()
+            logger.info(Msg.GET_FOLLOWING_LIST_DONE())
 
-                logger.info(Msg.GET_FOLLOWER_LIST_START())
-                follower_fetcher = NoAPIFollowerFetcher(username, password, target_username)
-                follower_list = follower_fetcher.fetch()
-                logger.info(Msg.GET_FOLLOWER_LIST_DONE())
-            else:
-                logger.info(Msg.USE_API_MODE())
-                user_id = self.twitter_api.get_user_id()
-
-                logger.info(Msg.GET_FOLLOWING_LIST_START())
-                following_list = self.twitter_api.get_following(user_id)
-                logger.info(Msg.GET_FOLLOWING_LIST_DONE())
-
-                logger.info(Msg.GET_FOLLOWER_LIST_START())
-                follower_list = self.twitter_api.get_follower(user_id)
-                logger.info(Msg.GET_FOLLOWER_LIST_DONE())
+            logger.info(Msg.GET_FOLLOWER_LIST_START())
+            follower_fetcher = NoAPIFollowerFetcher(username, password, target_username)
+            follower_list = follower_fetcher.fetch()
+            logger.info(Msg.GET_FOLLOWER_LIST_DONE())
 
             # (2)前回実行ファイルより前回のffを取得
             logger.info(Msg.DIRECTORY_INIT_START())
@@ -177,15 +147,15 @@ class Core():
             done_msg += f"follower num : {len(follower_list)}\n"
 
             try:
-                tweet_str = ""
                 is_notify = self.config["notification"].getboolean("is_notify")
-                reply_user_name = self.config["notification"]["reply_to_user_name"]
-                if is_notify and (reply_user_name != ""):
-                    tweet_str = "@" + reply_user_name + " " + done_msg
-                    if self.twitter_api.post_tweet(tweet_str):
-                        logger.info("Reply posted.")
+                if is_notify:
+                    notification.notify(
+                        title="ffgetter",
+                        message=done_msg,
+                    )
             except Exception:
-                logger.info("Reply post failed.")
+                # logger.info("Reply post failed.")
+                logger.info("Notification failed.")
 
             logger.info("")
             logger.info(done_msg)

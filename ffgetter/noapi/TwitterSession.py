@@ -356,10 +356,9 @@ if __name__ == "__main__":
     config.read(CONFIG_FILE_NAME, encoding="utf8")
 
     try:
-        if config["twitter_noapi"].getboolean("is_twitter_noapi"):
-            username = config["twitter_noapi"]["username"]
-            password = config["twitter_noapi"]["password"]
-            twitter_session = TwitterSession.create(Username(username), Password(password))
-            twitter_session.loop.run_until_complete(twitter_session.prepare())
+        username = config["twitter_noapi"]["username"]
+        password = config["twitter_noapi"]["password"]
+        twitter_session = TwitterSession.create(Username(username), Password(password))
+        twitter_session.loop.run_until_complete(twitter_session.prepare())
     except Exception as e:
         logger.exception(e)

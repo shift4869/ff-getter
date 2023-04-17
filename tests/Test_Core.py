@@ -33,37 +33,23 @@ class TestCore(unittest.TestCase):
 
     def test_Core(self):
         with ExitStack() as stack:
-            mock_twitter = stack.enter_context(patch("ffgetter.Core.TwitterAPI"))
-            mock_twitter.return_value = MagicMock(spec=TwitterAPI)
+            mock_logger_info = stack.enter_context(patch.object(logger, "info"))
+            mock_logger_error = stack.enter_context(patch.object(logger, "error"))
 
             config = configparser.ConfigParser()
             config.read_file(Path("./config/config.ini").open("r", encoding="utf-8"))
 
-            config_twitter_token = config["twitter_token_keys_v2"]
-            API_KEY = config_twitter_token["api_key"]
-            API_KEY_SECRET = config_twitter_token["api_key_secret"]
-            ACCESS_TOKEN_KEY = config_twitter_token["access_token"]
-            ACCESS_TOKEN_SECRET = config_twitter_token["access_token_secret"]
-
             core = Core()
             self.assertIsNone(core.parser)
             self.assertEqual(config, core.config)
-            self.assertIsInstance(core.twitter_api, TwitterAPI)
-            mock_twitter.assert_called_once_with(
-                API_KEY,
-                API_KEY_SECRET,
-                ACCESS_TOKEN_KEY,
-                ACCESS_TOKEN_SECRET
-            )
 
             mock_parser = MagicMock(spec=argparse.ArgumentParser)
             reserved_file_num = 10
-            mock_parser.parse_args.return_value.reply_to_user_name = "dummy_screen_name"
+            mock_parser.parse_args.return_value.disable_notification = True
             mock_parser.parse_args.return_value.disable_after_open = True
             mock_parser.parse_args.return_value.reserved_file_num = reserved_file_num
             core = Core(mock_parser)
-            self.assertTrue(core.config["notification"].getboolean("is_notify"))
-            self.assertEqual("dummy_screen_name", core.config["notification"]["reply_to_user_name"])
+            self.assertFalse(core.config["notification"].getboolean("is_notify"))
             self.assertFalse(core.config["after_open"].getboolean("is_after_open"))
             self.assertTrue(core.config["move_old_file"].getboolean("is_move_old_file"))
             self.assertEqual(str(reserved_file_num), core.config["move_old_file"]["reserved_file_num"])
@@ -71,19 +57,22 @@ class TestCore(unittest.TestCase):
 
     def test_run(self):
         with ExitStack() as stack:
+            mock_twitter_follorwing = stack.enter_context(patch("ffgetter.Core.NoAPIFollowingFetcher"))
+            mock_twitter_follorwer = stack.enter_context(patch("ffgetter.Core.NoAPIFollowerFetcher"))
             mock_twitter = stack.enter_context(patch("ffgetter.Core.TwitterAPI"))
             mock_directory = stack.enter_context(patch("ffgetter.Core.Directory"))
             mock_diff_following_list = stack.enter_context(patch("ffgetter.Core.DiffFollowingList"))
             mock_diff_follower_list = stack.enter_context(patch("ffgetter.Core.DiffFollowerList"))
+            mock_notification = stack.enter_context(patch("ffgetter.Core.notification"))
             mock_subprocess = stack.enter_context(patch("ffgetter.Core.subprocess"))
             mock_logger_info = stack.enter_context(patch.object(logger, "info"))
             mock_logger_error = stack.enter_context(patch.object(logger, "error"))
             freeze_gun = stack.enter_context(freeze_time("2023-03-20 00:00:00"))
 
-            twitter_api = mock_twitter.return_value
-            twitter_api.get_user_id.return_value = "dummy_user_id"
-            twitter_api.get_following.return_value = ["dummy_following_list"]
-            twitter_api.get_follower.return_value = ["dummy_follower_list"]
+            following_fetcher = mock_twitter_follorwing.return_value
+            following_fetcher.fetch.return_value = ["dummy_following_list"]
+            follower_fetcher = mock_twitter_follorwer.return_value
+            follower_fetcher.fetch.return_value = ["dummy_follower_list"]
 
             directory = mock_directory.return_value
             directory.get_last_following.return_value = ["dummy_prev_following_list"]
@@ -101,11 +90,19 @@ class TestCore(unittest.TestCase):
             done_msg += f"follow num : {1} , "
             done_msg += f"follower num : {1}\n"
 
+            core = Core()
+            username = core.config["twitter_noapi"]["username"]
+            password = core.config["twitter_noapi"]["password"]
+            target_username = core.config["twitter_noapi"]["target_username"]
+
             # 分岐に関わらず実行されるメソッドの呼び出し確認用
             def check_common_mock_call():
-                twitter_api.get_user_id.assert_called_once_with()
-                twitter_api.get_following.assert_called_once_with("dummy_user_id")
-                twitter_api.get_follower.assert_called_once_with("dummy_user_id")
+                mock_twitter_follorwing.assert_called_once_with(username, password, target_username)
+                mock_twitter_follorwer.assert_called_once_with(username, password, target_username)
+
+                following_fetcher.fetch.assert_called_once_with()
+                follower_fetcher.fetch.assert_called_once_with()
+
                 directory.get_last_following.assert_called_once_with()
                 directory.get_last_follower.assert_called_once_with()
                 mock_diff_following_list.create_from_diff.assert_called_once_with(
@@ -122,27 +119,27 @@ class TestCore(unittest.TestCase):
                     ["dummy_diff_following_list"],
                     ["dummy_diff_follower_list"]
                 )
-                mock_twitter.reset_mock()
+                mock_twitter_follorwing.reset_mock()
+                mock_twitter_follorwer.reset_mock()
                 mock_directory.reset_mock()
                 mock_diff_following_list.reset_mock()
                 mock_diff_follower_list.reset_mock()
 
             # 正常系
             # すべての分岐でTrueとなるパターン
-            core = Core()
-            core.config["twitter_noapi"]["is_twitter_noapi"] = "False"
             core.config["notification"]["is_notify"] = "True"
-            core.config["notification"]["reply_to_user_name"] = "dummy_user_name"
             core.config["move_old_file"]["is_move_old_file"] = "True"
             core.config["move_old_file"]["reserved_file_num"] = "10"
             core.config["after_open"]["is_after_open"] = "True"
             actual = core.run()
             expect = FFGetResult.SUCCESS
             self.assertIs(expect, actual)
-
-            tweet_str = "@" + "dummy_user_name" + " " + done_msg
+            mock_notification.notify.assert_called_once_with(
+                title="ffgetter",
+                message=done_msg,
+            )
+            mock_notification.reset_mock()
             reserved_file_num = int(core.config["move_old_file"]["reserved_file_num"])
-            twitter_api.post_tweet.assert_called_once_with(tweet_str)
             directory.move_old_file.assert_called_once_with(reserved_file_num)
             mock_subprocess.Popen.assert_called_once_with(["start", "dummy_saved_file_path"], shell=True)
             mock_subprocess.reset_mock()
@@ -153,9 +150,12 @@ class TestCore(unittest.TestCase):
             actual = core.run()
             expect = FFGetResult.SUCCESS
             self.assertIs(expect, actual)
-            tweet_str = "@" + "dummy_user_name" + " " + done_msg
+            mock_notification.notify.assert_called_once_with(
+                title="ffgetter",
+                message=done_msg,
+            )
+            mock_notification.reset_mock()
             reserved_file_num = int(core.config["move_old_file"]["reserved_file_num"])
-            twitter_api.post_tweet.assert_called_once_with(tweet_str)
             directory.move_old_file.assert_called_once_with(reserved_file_num)
             mock_subprocess.Popen.assert_not_called()
             mock_subprocess.reset_mock()
@@ -167,9 +167,12 @@ class TestCore(unittest.TestCase):
             actual = core.run()
             expect = FFGetResult.SUCCESS
             self.assertIs(expect, actual)
-            tweet_str = "@" + "dummy_user_name" + " " + done_msg
+            mock_notification.notify.assert_called_once_with(
+                title="ffgetter",
+                message=done_msg,
+            )
+            mock_notification.reset_mock()
             reserved_file_num = int(core.config["move_old_file"]["reserved_file_num"])
-            twitter_api.post_tweet.assert_called_once_with(tweet_str)
             directory.move_old_file.assert_not_called()
             mock_subprocess.Popen.assert_called_once_with(["start", "dummy_saved_file_path"], shell=True)
             mock_subprocess.reset_mock()
@@ -181,16 +184,15 @@ class TestCore(unittest.TestCase):
             actual = core.run()
             expect = FFGetResult.SUCCESS
             self.assertIs(expect, actual)
-            tweet_str = "@" + "dummy_user_name" + " " + done_msg
+            mock_notification.notify.assert_not_called()
             reserved_file_num = int(core.config["move_old_file"]["reserved_file_num"])
-            twitter_api.post_tweet.assert_not_called()
             directory.move_old_file.assert_called_once_with(reserved_file_num)
             mock_subprocess.Popen.assert_called_once_with(["start", "dummy_saved_file_path"], shell=True)
             mock_subprocess.reset_mock()
             check_common_mock_call()
 
             # 異常系
-            twitter_api.get_user_id.side_effect = ValueError
+            mock_twitter_follorwing.side_effect = ValueError
             actual = core.run()
             expect = FFGetResult.FAILED
             self.assertIs(expect, actual)

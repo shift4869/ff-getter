@@ -76,11 +76,11 @@ class Core():
     def run(self) -> FFGetResult:
         """ffgetter メイン実行
 
-        (1)ユーザIDを取得し、following と follower リストを TwitterAPI を通して取得する
+        (1)following と follower リストを取得する
         (2)前回記録した following と follower を前回実行ファイルから取得する(prev_*)
         (3)今回のffと前回のffを比較し、その差分を取得する(diff_*)
         (4)結果をファイルに記録・保存する
-        (5)完了通知を送信する
+        (5)完了通知を行う
         (6)古いファイルを移動させる
         (7)完了後にファイルを開く
 

@@ -271,24 +271,22 @@ if __name__ == "__main__":
         raise IOError
 
     config = config_parser["twitter_noapi"]
+    username = config["username"]
+    password = config["password"]
+    target_username = config["target_username"]
 
-    if config.getboolean("is_twitter_noapi"):
-        username = config["username"]
-        password = config["password"]
-        target_username = config["target_username"]
+    # キャッシュから読み込み
+    # base_path = Path(fetcher.TWITTER_CACHE_PATH)
+    # fetched_json = []
+    # for cache_path in base_path.glob("*content_cache*"):
+    #     with cache_path.open("r", encoding="utf8") as fin:
+    #         json_dict = json.load(fin)
+    #         fetched_json.append(json_dict)
 
-        # キャッシュから読み込み
-        # base_path = Path(fetcher.TWITTER_CACHE_PATH)
-        # fetched_json = []
-        # for cache_path in base_path.glob("*content_cache*"):
-        #     with cache_path.open("r", encoding="utf8") as fin:
-        #         json_dict = json.load(fin)
-        #         fetched_json.append(json_dict)
+    fetcher = NoAPIFollowingFetcher(Username(username), Password(password), Username(target_username))
+    following_list = fetcher.fetch()
+    pprint.pprint(len(following_list))
 
-        fetcher = NoAPIFollowingFetcher(Username(username), Password(password), Username(target_username))
-        following_list = fetcher.fetch()
-        pprint.pprint(len(following_list))
-
-        fetcher = NoAPIFollowerFetcher(Username(username), Password(password), Username(target_username))
-        follower_list = fetcher.fetch()
-        pprint.pprint(len(follower_list))
+    fetcher = NoAPIFollowerFetcher(Username(username), Password(password), Username(target_username))
+    follower_list = fetcher.fetch()
+    pprint.pprint(len(follower_list))

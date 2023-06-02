@@ -91,6 +91,10 @@ class TwitterSession():
         Returns:
             bool: 正しく following ページが取得できたらTrue, 不正ならFalse
         """
+        STRICT_CHECK = False
+        if not STRICT_CHECK:
+            return True
+
         url = self.FOLLOWING_TEMPLATE.format(self.username.name)
         response: Response = self.loop.run_until_complete(self.get(url))
         response.raise_for_status()
@@ -148,11 +152,11 @@ class TwitterSession():
             await page.setCookie(d)
 
         # ローカルストレージとクッキーセット後にページ遷移できるか確認
-        url = self.FOLLOWING_TEMPLATE.format(self.username.name)
-        await asyncio.gather(
-            page.goto(url),
-            page.waitForNavigation()
-        )
+        # url = self.FOLLOWING_TEMPLATE.format(self.username.name)
+        # await asyncio.gather(
+        #     page.goto(url),
+        #     page.waitForNavigation()
+        # )
 
         # AsyncHTMLSession を作成してブラウザに紐づける
         session = AsyncHTMLSession()

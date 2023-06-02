@@ -148,7 +148,7 @@ class NoAPIFFFetcherBase():
             await page.waitFor(
                 get_wait_millisecond()
             )
-            logger.info(f"({i+1}/{max_scroll}) pages fetched.")
+            logger.info(f"{self.ff_type} ({i+1}/{max_scroll}) pages fetched.")
         await page.waitFor(2000)
         logger.info(f"Getting {self.ff_type} page fetched -> done")
 

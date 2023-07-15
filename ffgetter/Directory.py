@@ -164,6 +164,7 @@ class Directory():
         return FollowerList.create(prev_follower_list)
 
     def save_file(self,
+                  target_username: str,
                   following_list: FollowingList,
                   follower_list: FollowerList,
                   diff_following_list: DiffFollowingList,
@@ -213,6 +214,7 @@ class Directory():
         template: Template = Template(template_str)
         rendered_str = template.render({
             "today_str": today_str,
+            "target_username": target_username,
             "following_caption": following_caption,
             "following_list": t_following_list,
             "follower_caption": follower_caption,

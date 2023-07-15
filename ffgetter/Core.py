@@ -135,7 +135,7 @@ class Core():
 
             # (4)結果保存
             logger.info(Msg.SAVE_RESULT_START())
-            saved_file_path = directory.save_file(following_list, follower_list, diff_following_list, diff_follower_list)
+            saved_file_path = directory.save_file(target_username, following_list, follower_list, diff_following_list, diff_follower_list)
             logger.info(f"file saved to {str(saved_file_path)}.")
             logger.info(Msg.SAVE_RESULT_DONE())
 

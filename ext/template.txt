@@ -1,4 +1,4 @@
-{{ today_str }}
+{{ today_str }} {{ target_username }}
 {{ following_caption }}
 id, name, screen_name
 {% for following in following_list %}{{ following }}{% endfor %}

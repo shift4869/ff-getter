@@ -123,3 +123,4 @@ log*.txt*
 *.bat
 *.txt
 !requirements.txt
+/data/

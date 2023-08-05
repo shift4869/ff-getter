@@ -96,17 +96,19 @@ class Core():
             following_list = None
             follower_list = None
             logger.info(Msg.NO_API_MODE())
-            username = self.config["twitter_noapi"]["username"]
-            password = self.config["twitter_noapi"]["password"]
-            target_username = self.config["twitter_noapi"]["target_username"]
+            config = self.config["twitter_api_client"]
+            ct0 = config["ct0"]
+            auth_token = config["auth_token"]
+            target_screen_name = config["target_screen_name"]
+            target_id = config["target_id"]
 
             logger.info(Msg.GET_FOLLOWING_LIST_START())
-            following_fetcher = NoAPIFollowingFetcher(username, password, target_username)
+            following_fetcher = NoAPIFollowingFetcher(ct0, auth_token, target_screen_name, target_id)
             following_list = following_fetcher.fetch()
             logger.info(Msg.GET_FOLLOWING_LIST_DONE())
 
             logger.info(Msg.GET_FOLLOWER_LIST_START())
-            follower_fetcher = NoAPIFollowerFetcher(username, password, target_username)
+            follower_fetcher = NoAPIFollowerFetcher(ct0, auth_token, target_screen_name, target_id)
             follower_list = follower_fetcher.fetch()
             logger.info(Msg.GET_FOLLOWER_LIST_DONE())
 
@@ -135,7 +137,7 @@ class Core():
 
             # (4)結果保存
             logger.info(Msg.SAVE_RESULT_START())
-            saved_file_path = directory.save_file(target_username, following_list, follower_list, diff_following_list, diff_follower_list)
+            saved_file_path = directory.save_file(target_screen_name, following_list, follower_list, diff_following_list, diff_follower_list)
             logger.info(f"file saved to {str(saved_file_path)}.")
             logger.info(Msg.SAVE_RESULT_DONE())
 

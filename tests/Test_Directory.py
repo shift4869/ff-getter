@@ -38,6 +38,7 @@ class TestDirectory(unittest.TestCase):
         file_path = test_base_path / directory.RESULT_DIRECTORY / f"{directory.FILE_NAME_BASE}_{yesterday_str}.txt"
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
+        target_username = "dummy_target_username"
         user_record_1 = UserRecord.create(1, "ユーザー1", "screen_name_1")
         user_record_2 = UserRecord.create(2, "ユーザー2", "screen_name_2")
         user_record_3 = UserRecord.create(3, "ユーザー3", "screen_name_3")
@@ -62,6 +63,7 @@ class TestDirectory(unittest.TestCase):
 
         rendered_str = template.render({
             "today_str": yesterday_str,
+            "target_username": target_username,
             "following_caption": following_caption,
             "following_list": t_following_list,
             "follower_caption": follower_caption,
@@ -167,6 +169,7 @@ class TestDirectory(unittest.TestCase):
             object.__setattr__(directory, "RESULT_DIRECTORY", "./tests/result")
             Path(directory.RESULT_DIRECTORY).mkdir(parents=True, exist_ok=True)
 
+            target_username = "dummy_target_username"
             following_1 = Following.create(1, "ユーザー1", "screen_name_1")
             following_2 = Following.create(2, "ユーザー2", "screen_name_2")
             follower_2 = Follower.create(2, "ユーザー2", "screen_name_2")
@@ -181,7 +184,7 @@ class TestDirectory(unittest.TestCase):
 
             today_str = "20230318"
             yesterday_str = "20230317"
-            actual = directory.save_file(following_list, follower_list, diff_following_list, diff_follower_list)
+            actual = directory.save_file(target_username, following_list, follower_list, diff_following_list, diff_follower_list)
             expect = self._make_sample_file()
             expect_str = str(expect.absolute()).replace(yesterday_str, today_str)  # 日付部分の差異は吸収
             self.assertEqual(expect_str, str(actual.absolute()))

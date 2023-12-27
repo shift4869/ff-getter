@@ -91,14 +91,15 @@ class TestCore(unittest.TestCase):
             done_msg += f"follower num : {1}\n"
 
             core = Core()
-            username = core.config["twitter_noapi"]["username"]
-            password = core.config["twitter_noapi"]["password"]
-            target_username = core.config["twitter_noapi"]["target_username"]
+            ct0 = core.config["twitter_api_client"]["ct0"]
+            auth_token = core.config["twitter_api_client"]["auth_token"]
+            target_screen_name = core.config["twitter_api_client"]["target_screen_name"]
+            target_id = core.config["twitter_api_client"]["target_id"]
 
             # 分岐に関わらず実行されるメソッドの呼び出し確認用
             def check_common_mock_call():
-                mock_twitter_follorwing.assert_called_once_with(username, password, target_username)
-                mock_twitter_follorwer.assert_called_once_with(username, password, target_username)
+                mock_twitter_follorwing.assert_called_once_with(ct0, auth_token, target_screen_name, target_id)
+                mock_twitter_follorwer.assert_called_once_with(ct0, auth_token, target_screen_name, target_id)
 
                 following_fetcher.fetch.assert_called_once_with()
                 follower_fetcher.fetch.assert_called_once_with()
@@ -114,6 +115,7 @@ class TestCore(unittest.TestCase):
                     ["dummy_prev_follower_list"]
                 )
                 directory.save_file.assert_called_once_with(
+                    target_screen_name,
                     ["dummy_following_list"],
                     ["dummy_follower_list"],
                     ["dummy_diff_following_list"],

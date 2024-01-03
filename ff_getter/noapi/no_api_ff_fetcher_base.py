@@ -7,15 +7,15 @@ from typing import Literal
 
 from twitter.scraper import Scraper
 
-from ffgetter.noapi.username import Username
-from ffgetter.value_object.user_record import Follower, Following
-from ffgetter.value_object.user_record_list import FollowerList, FollowingList
+from ff_getter.noapi.username import Username
+from ff_getter.value_object.user_record import Follower, Following
+from ff_getter.value_object.user_record_list import FollowerList, FollowingList
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
 
 
-class NoAPIFFFetcherBase():
+class NoAPIFFFetcherBase:
     ct0: str
     auth_token: str
     target_screen_name: Username
@@ -71,9 +71,7 @@ class NoAPIFFFetcherBase():
 
         # キャッシュに保存
         for i, content in enumerate(fetched_contents):
-            Path(base_path / f"content_cache{i}.txt").write_text(
-                json.dumps(content, indent=4), encoding="utf-8"
-            )
+            Path(base_path / f"content_cache{i}.txt").write_text(json.dumps(content, indent=4), encoding="utf-8")
 
         # キャッシュから読み込み
         # content_list と result はほぼ同一の内容になる
@@ -88,19 +86,14 @@ class NoAPIFFFetcherBase():
         return result
 
     def interpret_json(self, json_dict: dict) -> dict:
-        """辞書構成をたどる
-        """
+        """辞書構成をたどる"""
         if not isinstance(json_dict, dict):
             raise TypeError("argument tweet is not dict.")
 
         match json_dict:
             case {
                 "content": {
-                    "itemContent": {
-                        "user_results": {
-                            "result": result
-                        }
-                    },
+                    "itemContent": {"user_results": {"result": result}},
                 },
             }:
                 id_str = result.get("rest_id", "")
@@ -122,12 +115,7 @@ class NoAPIFFFetcherBase():
         # 辞書パース
         data_list: list[Following] | list[Follower] = []
         for r in fetched_jsons:
-            instructions = r.get("data", {}) \
-                            .get("user", {}) \
-                            .get("result", {}) \
-                            .get("timeline", {}) \
-                            .get("timeline", {}) \
-                            .get("instructions", [{}])
+            instructions = r.get("data", {}).get("user", {}).get("result", {}).get("timeline", {}).get("timeline", {}).get("instructions", [{}])
             if not instructions:
                 continue
             for instruction in instructions:

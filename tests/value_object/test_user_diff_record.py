@@ -1,10 +1,10 @@
 import sys
 import unittest
 
-from ffgetter.value_object.diff_record import DiffFollower, DiffFollowing, DiffRecord, DiffType
-from ffgetter.value_object.screen_name import ScreenName
-from ffgetter.value_object.user_id import UserId
-from ffgetter.value_object.user_name import UserName
+from ff_getter.value_object.diff_record import DiffFollower, DiffFollowing, DiffRecord, DiffType
+from ff_getter.value_object.screen_name import ScreenName
+from ff_getter.value_object.user_id import UserId
+from ff_getter.value_object.user_name import UserName
 
 
 class TestDiffRecord(unittest.TestCase):

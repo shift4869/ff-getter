@@ -9,27 +9,28 @@ import pyppeteer
 from requests.models import Response
 from requests_html import HTML, AsyncHTMLSession, Element
 
-from ffgetter.noapi.cookies import Cookies
-from ffgetter.noapi.local_storage import LocalStorage
-from ffgetter.noapi.password import Password
-from ffgetter.noapi.username import Username
+from ff_getter.noapi.cookies import Cookies
+from ff_getter.noapi.local_storage import LocalStorage
+from ff_getter.noapi.password import Password
+from ff_getter.noapi.username import Username
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
 
 
 @dataclass(frozen=True)
-class TwitterSession():
+class TwitterSession:
     """Twitterセッション
 
     通常の接続ではページがうまく取得できないので
     クッキーとローカルストレージを予め設定したページセッションを用いる
     """
-    username: Username           # ユーザーネーム(@除外)
-    password: Password           # パスワード
-    cookies: Cookies             # 接続時に使うクッキー
+
+    username: Username  # ユーザーネーム(@除外)
+    password: Password  # パスワード
+    cookies: Cookies  # 接続時に使うクッキー
     local_storage: LocalStorage  # 接続時に使うローカルストレージ
-    session: ClassVar[AsyncHTMLSession]        # 非同期セッション
+    session: ClassVar[AsyncHTMLSession]  # 非同期セッション
     loop: ClassVar[asyncio.AbstractEventLoop]  # イベントループ
 
     # 接続時に使用するヘッダー
@@ -139,15 +140,7 @@ class TwitterSession():
 
         # クッキーをセットする
         for c in self.cookies.cookies:
-            d = {
-                "name": c.name,
-                "value": c.value,
-                "expires": c.expires,
-                "path": c.path,
-                "domain": c.domain,
-                "secure": bool(c.secure),
-                "httpOnly": bool(c._rest["HttpOnly"])
-            }
+            d = {"name": c.name, "value": c.value, "expires": c.expires, "path": c.path, "domain": c.domain, "secure": bool(c.secure), "httpOnly": bool(c._rest["HttpOnly"])}
             await page.setCookie(d)
 
         # ローカルストレージとクッキーセット後にページ遷移できるか確認
@@ -217,10 +210,7 @@ class TwitterSession():
         logger.info("Login flow start.")
 
         # ログインページに遷移
-        await asyncio.gather(
-            page.goto(login_url),
-            page.waitForNavigation()
-        )
+        await asyncio.gather(page.goto(login_url), page.waitForNavigation())
         await page.waitFor(3000)
         content = await page.content()
         cookies = await page.cookies()
@@ -339,9 +329,7 @@ class TwitterSession():
         # または有効なセッションが取得できなかった場合
         # 認証してクッキーとローカルストレージの取得を試みる
         loop = asyncio.new_event_loop()
-        cookies, local_storage = loop.run_until_complete(
-            TwitterSession.get_cookies_from_oauth(username, password)
-        )
+        cookies, local_storage = loop.run_until_complete(TwitterSession.get_cookies_from_oauth(username, password))
         loop.close()
         twitter_session = TwitterSession(username, password, cookies, local_storage)
         cls._twitter_session = twitter_session

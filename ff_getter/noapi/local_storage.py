@@ -5,9 +5,9 @@ from pathlib import Path
 
 
 @dataclass(frozen=True)
-class LocalStorage():
-    """Twitterセッションで使うローカルストレージ
-    """
+class LocalStorage:
+    """Twitterセッションで使うローカルストレージ"""
+
     _local_storage: list[str]
 
     # ローカルストレージファイルパス

@@ -1,8 +1,8 @@
 import sys
 import unittest
 
-from ffgetter.value_object.user_record import UserRecord
-from ffgetter.value_object.user_record_list import FollowerList, FollowingList, UserRecordList
+from ff_getter.value_object.user_record import UserRecord
+from ff_getter.value_object.user_record_list import FollowerList, FollowingList, UserRecordList
 
 
 class TestUserRecordList(unittest.TestCase):

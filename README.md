@@ -17,30 +17,30 @@
 
 ## 前提として必要なもの
 - Pythonの実行環境(3.11以上)
-- twitterアカウントのAPIトークン
-    - TwitterAPI(v2)を使用するためのAPIトークン。以下の4つのキーが必要
-        - APIキー (API Key)
-        - APIキーシークレット (API Key Secret)
-        - アクセストークン (Access Token)
-        - アクセストークンシークレット (Access Token Secret)
-    - 自分のtwitterアカウントも必要
-        - 加えて上記4つのキーを取得するためにDeveloper登録が必要なのでそのための電話番号の登録が必要
-    - 詳しくは「twitter API トークン v2」等で検索
+- twitterのセッション情報
+    - ブラウザでログイン済のアカウントについて、以下の値をクッキーから取得
+        - ct0 (クッキー中)
+        - auth_token (クッキー中)
+        - target_screen_name(収集対象の@なしscreen_name)
+        - target_id (クッキー中の"twid"の値について、"u%3D{target_id}"で表される数値列)
+    - ブラウザ上でのクッキーの確認方法
+        - 各ブラウザによって異なるが、概ね `F12を押す→ページ更新→アプリケーションタブ→クッキー` で確認可能
+    - 詳しくは「twitter クッキー ct0 auth_token」等で検索
 
 
 ## 使い方
 1. このリポジトリをDL
     - 右上の「Clone or download」->「Download ZIP」からDLして解凍  
-1.  `FFGetter.py` から見て `./config/` ディレクトリ内に、以下を参考にして `config.ini` を作成する  
-    - 自分のtwitterアカウントのAPIトークン(v2)を設定する（必須）  
+1.  `ff_getter.py` から見て `./config/` ディレクトリ内に、以下を参考にして `config.ini` を作成する  
+    - 自分のtwitterアカウントのセッション情報を設定する（必須）  
     - 実行終了時にリプライを送る対象の `screen_name` を記載（任意）  
     ```
-    # TwitterAPI(v2)トークン
-    [twitter_token_keys_v2]
-    api_key             = xxxxxxxxxxxxxxxxxxxxxxxxx
-    api_key_secret      = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    access_token        = xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    access_token_secret = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    # twitterセッション情報
+    [twitter_api_client]
+    ct0                 = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    auth_token          = xxxxxxxxxxxxxxxxxxxxxxxxxxx
+    target_screen_name        = {screen_name exclude @}
+    target_id           = 00000000
 
     # 実行後に結果のリプライを送るかどうか
     [notification]
@@ -56,15 +56,15 @@
     is_move_old_file = True
     reserved_file_num = 10
     ```
-1. `FFGetter.py` を実行する
+1. `ff_getter.py` を実行する
     ```
-    python FFGetter.py
+    python ff_getter.py
     ```
-    有効なオプションは `python FFGetter.py -h` で確認できる  
+    有効なオプションは `python ff_getter.py -h` で確認できる  
     configファイルの設定よりオプションでの指定の方が優先される  
 1. 出力された `./result/ff_list_{yyyymmdd}.txt` を確認する
 
 
 ## License/Author
 [MIT License](https://github.com/shift4869/FFGetter/blob/master/LICENSE)  
-Copyright (c) 2022 [shift](https://twitter.com/_shift4869)
+Copyright (c) 2022 - 2024 [shift](https://twitter.com/_shift4869)

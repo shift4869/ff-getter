@@ -11,12 +11,12 @@ from typing import ClassVar
 
 from plyer import notification
 
-from ffgetter.directory import Directory
-from ffgetter.log_message import Message as Msg
-from ffgetter.noapi.no_api_ff_fetcher_base import NoAPIFollowerFetcher, NoAPIFollowingFetcher
-from ffgetter.twitter_api import TwitterAPI
-from ffgetter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList
-from ffgetter.value_object.screen_name import ScreenName
+from ff_getter.directory import Directory
+from ff_getter.log_message import Message as Msg
+from ff_getter.noapi.no_api_ff_fetcher_base import NoAPIFollowerFetcher, NoAPIFollowingFetcher
+from ff_getter.twitter_api import TwitterAPI
+from ff_getter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList
+from ff_getter.value_object.screen_name import ScreenName
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
@@ -29,12 +29,13 @@ class FFGetResult(Enum):
         SUCCESS (auto): 成功時
         FAILED (auto): 失敗時
     """
+
     SUCCESS = auto()
     FAILED = auto()
 
 
 @dataclass()
-class Core():
+class Core:
     """ffgetter のメイン実行機能を司るクラス
 
     Args:
@@ -45,14 +46,14 @@ class Core():
         config (configparser.ConfigParser): config 設定
         CONFIG_FILE_PATH (str): config 設定ファイルがあるパス
     """
+
     parser: argparse.ArgumentParser | None = None
     config: ClassVar[configparser.ConfigParser]
 
     CONFIG_FILE_PATH = "./config/config.ini"
 
     def __post_init__(self) -> None:
-        """初期化後処理
-        """
+        """初期化後処理"""
         logger.info(Msg.CORE_INIT_START())
         work_directory: Path = Path(os.path.dirname(__file__)).parent
         os.chdir(work_directory)
@@ -189,6 +190,7 @@ class Core():
 
 if __name__ == "__main__":
     import logging.config
+
     logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
     for name in logging.root.manager.loggerDict:
         if "ffgetter" not in name:

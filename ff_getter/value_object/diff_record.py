@@ -2,20 +2,20 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Self
 
-from ffgetter.value_object.screen_name import ScreenName
-from ffgetter.value_object.user_id import UserId
-from ffgetter.value_object.user_name import UserName
+from ff_getter.value_object.screen_name import ScreenName
+from ff_getter.value_object.user_id import UserId
+from ff_getter.value_object.user_name import UserName
 
 
 class DiffType(Enum):
-    """差分タイプ
-    """
+    """差分タイプ"""
+
     ADD = "ADD"
     REMOVE = "REMOVE"
 
 
 @dataclass(frozen=True)
-class DiffRecord():
+class DiffRecord:
     """差分レコード
 
     Args:
@@ -24,6 +24,7 @@ class DiffRecord():
         _name (UserName): ユーザ名
         _screen_name (ScreenName): スクリーンネーム
     """
+
     _diff_type: DiffType
     _id: UserId
     _name: UserName
@@ -98,15 +99,15 @@ class DiffRecord():
 
 @dataclass(frozen=True)
 class DiffFollowing(DiffRecord):
-    """Following 差分レコード
-    """
+    """Following 差分レコード"""
+
     pass
 
 
 @dataclass(frozen=True)
 class DiffFollower(DiffRecord):
-    """Follower 差分レコード
-    """
+    """Follower 差分レコード"""
+
     pass
 
 

@@ -3,9 +3,10 @@ from enum import Enum
 
 class Message(Enum):
     """ログメッセージを表す列挙型
-        関数呼び出し()で値を取得できる
-        cx: Message.HORIZONTAL_LINE()
+    関数呼び出し()で値を取得できる
+    cx: Message.HORIZONTAL_LINE()
     """
+
     HORIZONTAL_LINE = "-" * 80
 
     APPLICATION_START = "ffgetter -> start"

@@ -2,8 +2,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Iterable, Iterator, Self
 
-from ffgetter.value_object.diff_record import DiffFollower, DiffFollowing, DiffRecord, DiffType
-from ffgetter.value_object.user_record_list import UserRecordList
+from ff_getter.value_object.diff_record import DiffFollower, DiffFollowing, DiffRecord, DiffType
+from ff_getter.value_object.user_record_list import UserRecordList
 
 
 @dataclass(frozen=True)
@@ -13,6 +13,7 @@ class DiffRecordList(Iterable):
     Args:
         _list (list[DiffRecord]): 差分レコードのリスト
     """
+
     _list: list[DiffRecord]
 
     def __post_init__(self) -> None:
@@ -115,22 +116,22 @@ class DiffRecordList(Iterable):
 
 @dataclass(frozen=True)
 class DiffFollowingList(DiffRecordList):
-    """Following 差分レコードリスト
-    """
+    """Following 差分レコードリスト"""
+
     pass
 
 
 @dataclass(frozen=True)
 class DiffFollowerList(DiffRecordList):
-    """Follower 差分レコードリスト
-    """
+    """Follower 差分レコードリスト"""
+
     pass
 
 
 if __name__ == "__main__":
-    from ffgetter.value_object.screen_name import ScreenName
-    from ffgetter.value_object.user_id import UserId
-    from ffgetter.value_object.user_name import UserName
+    from ff_getter.value_object.screen_name import ScreenName
+    from ff_getter.value_object.user_id import UserId
+    from ff_getter.value_object.user_name import UserName
 
     diff_type = DiffType.ADD
     user_id = UserId(123)
@@ -163,8 +164,9 @@ if __name__ == "__main__":
     diff_follower_list = DiffFollowerList.create([diff_follower])
     print(diff_follower_list)
 
-    from ffgetter.value_object.user_record import Following
-    from ffgetter.value_object.user_record_list import FollowerList, FollowingList
+    from ff_getter.value_object.user_record import Following
+    from ff_getter.value_object.user_record_list import FollowerList, FollowingList
+
     following = Following(user_id, user_name, screen_name)
     following1 = Following(UserId(1), user_name, screen_name)
     following2 = Following(UserId(2), user_name, screen_name)

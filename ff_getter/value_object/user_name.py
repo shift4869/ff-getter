@@ -2,12 +2,13 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class UserName():
+class UserName:
     """ユーザ名
 
     Args:
         _name (str): ユーザ名
     """
+
     _name: str
 
     def __post_init__(self) -> None:

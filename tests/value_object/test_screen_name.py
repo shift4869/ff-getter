@@ -1,7 +1,7 @@
 import sys
 import unittest
 
-from ffgetter.value_object.screen_name import ScreenName
+from ff_getter.value_object.screen_name import ScreenName
 
 
 class TestScreenName(unittest.TestCase):

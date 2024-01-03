@@ -11,10 +11,10 @@ from pathlib import Path
 from freezegun import freeze_time
 from mock import MagicMock, patch
 
-from ffgetter.core import Core, FFGetResult
-from ffgetter.twitter_api import TwitterAPI
+from ff_getter.core import Core, FFGetResult
+from ff_getter.twitter_api import TwitterAPI
 
-logger = getLogger("ffgetter.core")
+logger = getLogger("ff_getter.core")
 logger.setLevel(WARNING)
 
 
@@ -56,14 +56,14 @@ class TestCore(unittest.TestCase):
 
     def test_run(self):
         with ExitStack() as stack:
-            mock_twitter_follorwing = stack.enter_context(patch("ffgetter.core.NoAPIFollowingFetcher"))
-            mock_twitter_follorwer = stack.enter_context(patch("ffgetter.core.NoAPIFollowerFetcher"))
-            mock_twitter = stack.enter_context(patch("ffgetter.core.TwitterAPI"))
-            mock_directory = stack.enter_context(patch("ffgetter.core.Directory"))
-            mock_diff_following_list = stack.enter_context(patch("ffgetter.core.DiffFollowingList"))
-            mock_diff_follower_list = stack.enter_context(patch("ffgetter.core.DiffFollowerList"))
-            mock_notification = stack.enter_context(patch("ffgetter.core.notification"))
-            mock_subprocess = stack.enter_context(patch("ffgetter.core.subprocess"))
+            mock_twitter_follorwing = stack.enter_context(patch("ff_getter.core.NoAPIFollowingFetcher"))
+            mock_twitter_follorwer = stack.enter_context(patch("ff_getter.core.NoAPIFollowerFetcher"))
+            mock_twitter = stack.enter_context(patch("ff_getter.core.TwitterAPI"))
+            mock_directory = stack.enter_context(patch("ff_getter.core.Directory"))
+            mock_diff_following_list = stack.enter_context(patch("ff_getter.core.DiffFollowingList"))
+            mock_diff_follower_list = stack.enter_context(patch("ff_getter.core.DiffFollowerList"))
+            mock_notification = stack.enter_context(patch("ff_getter.core.notification"))
+            mock_subprocess = stack.enter_context(patch("ff_getter.core.subprocess"))
             mock_logger_info = stack.enter_context(patch.object(logger, "info"))
             mock_logger_error = stack.enter_context(patch.object(logger, "error"))
             freeze_gun = stack.enter_context(freeze_time("2023-03-20 00:00:00"))
@@ -105,21 +105,9 @@ class TestCore(unittest.TestCase):
 
                 directory.get_last_following.assert_called_once_with()
                 directory.get_last_follower.assert_called_once_with()
-                mock_diff_following_list.create_from_diff.assert_called_once_with(
-                    ["dummy_following_list"],
-                    ["dummy_prev_following_list"]
-                )
-                mock_diff_follower_list.create_from_diff.assert_called_once_with(
-                    ["dummy_follower_list"],
-                    ["dummy_prev_follower_list"]
-                )
-                directory.save_file.assert_called_once_with(
-                    target_screen_name,
-                    ["dummy_following_list"],
-                    ["dummy_follower_list"],
-                    ["dummy_diff_following_list"],
-                    ["dummy_diff_follower_list"]
-                )
+                mock_diff_following_list.create_from_diff.assert_called_once_with(["dummy_following_list"], ["dummy_prev_following_list"])
+                mock_diff_follower_list.create_from_diff.assert_called_once_with(["dummy_follower_list"], ["dummy_prev_follower_list"])
+                directory.save_file.assert_called_once_with(target_screen_name, ["dummy_following_list"], ["dummy_follower_list"], ["dummy_diff_following_list"], ["dummy_diff_follower_list"])
                 mock_twitter_follorwing.reset_mock()
                 mock_twitter_follorwer.reset_mock()
                 mock_directory.reset_mock()

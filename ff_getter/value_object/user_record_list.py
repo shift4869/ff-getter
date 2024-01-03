@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Iterable, Iterator, Self
 
-from ffgetter.value_object.user_record import Follower, Following, UserRecord
+from ff_getter.value_object.user_record import Follower, Following, UserRecord
 
 
 @dataclass(frozen=True)
@@ -11,6 +11,7 @@ class UserRecordList(Iterable):
     Args:
         _list (list[UserRecord]): レコードのリスト
     """
+
     _list: list[UserRecord]
 
     def __post_init__(self) -> None:
@@ -53,22 +54,22 @@ class UserRecordList(Iterable):
 
 @dataclass(frozen=True)
 class FollowingList(UserRecordList):
-    """Following レコードリスト
-    """
+    """Following レコードリスト"""
+
     pass
 
 
 @dataclass(frozen=True)
 class FollowerList(UserRecordList):
-    """Follower レコードリスト
-    """
+    """Follower レコードリスト"""
+
     pass
 
 
 if __name__ == "__main__":
-    from ffgetter.value_object.screen_name import ScreenName
-    from ffgetter.value_object.user_id import UserId
-    from ffgetter.value_object.user_name import UserName
+    from ff_getter.value_object.screen_name import ScreenName
+    from ff_getter.value_object.user_id import UserId
+    from ff_getter.value_object.user_name import UserName
 
     user_id = UserId(123)
     user_name = UserName("ユーザー1")

@@ -8,11 +8,11 @@ from pathlib import Path
 from freezegun import freeze_time
 from jinja2 import Template
 
-from ffgetter.directory import Directory
-from ffgetter.value_object.diff_record import DiffFollower, DiffFollowing, DiffRecord
-from ffgetter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList, DiffRecordList
-from ffgetter.value_object.user_record import Follower, Following, UserRecord
-from ffgetter.value_object.user_record_list import FollowerList, FollowingList, UserRecordList
+from ff_getter.directory import Directory
+from ff_getter.value_object.diff_record import DiffFollower, DiffFollowing, DiffRecord
+from ff_getter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList, DiffRecordList
+from ff_getter.value_object.user_record import Follower, Following, UserRecord
+from ff_getter.value_object.user_record_list import FollowerList, FollowingList, UserRecordList
 
 
 class TestDirectory(unittest.TestCase):
@@ -60,17 +60,19 @@ class TestDirectory(unittest.TestCase):
         follower_caption = f"follower {follower_num}"
         difference_caption = f"difference with nothing (first run)"
 
-        rendered_str = template.render({
-            "today_str": yesterday_str,
-            "target_username": target_username,
-            "following_caption": following_caption,
-            "following_list": t_following_list,
-            "follower_caption": follower_caption,
-            "follower_list": t_follower_list,
-            "difference_caption": difference_caption,
-            "diff_following_list": t_diff_following_list,
-            "diff_follower_list": t_diff_follower_list,
-        })
+        rendered_str = template.render(
+            {
+                "today_str": yesterday_str,
+                "target_username": target_username,
+                "following_caption": following_caption,
+                "following_list": t_following_list,
+                "follower_caption": follower_caption,
+                "follower_list": t_follower_list,
+                "difference_caption": difference_caption,
+                "diff_following_list": t_diff_following_list,
+                "diff_follower_list": t_diff_follower_list,
+            }
+        )
         with file_path.open("w", encoding="utf-8") as fout:
             fout.write(rendered_str)
         return file_path

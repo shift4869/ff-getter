@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class UserId():
+class UserId:
     """ユーザID
 
     Args:
@@ -11,6 +11,7 @@ class UserId():
     Attributes:
         id_str (str): ユーザIDを文字列に変換したもの
     """
+
     _id: int
 
     def __post_init__(self) -> None:

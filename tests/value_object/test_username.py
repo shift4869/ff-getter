@@ -1,7 +1,7 @@
 import sys
 import unittest
 
-from ffgetter.value_object.user_name import UserName
+from ff_getter.value_object.user_name import UserName
 
 
 class TestUserName(unittest.TestCase):

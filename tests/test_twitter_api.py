@@ -12,12 +12,12 @@ from freezegun import freeze_time
 from mock import MagicMock, patch
 from requests_oauthlib import OAuth1Session
 
-from ffgetter.twitter_api import TwitterAPI, TwitterAPIEndpoint
-from ffgetter.value_object.user_id import UserId
-from ffgetter.value_object.user_record import Follower, Following
-from ffgetter.value_object.user_record_list import FollowerList, FollowingList
+from ff_getter.twitter_api import TwitterAPI, TwitterAPIEndpoint
+from ff_getter.value_object.user_id import UserId
+from ff_getter.value_object.user_record import Follower, Following
+from ff_getter.value_object.user_record_list import FollowerList, FollowingList
 
-logger = getLogger("ffgetter.twitter_api")
+logger = getLogger("ff_getter.twitter_api")
 logger.setLevel(WARNING)
 
 
@@ -27,7 +27,7 @@ class TestTwitterAPI(unittest.TestCase):
         dummy_api_secret = "dummy_api_secret"
         dummy_access_token_key = "dummy_access_token_key"
         dummy_access_token_secret = "dummy_access_token_secret"
-        with patch("ffgetter.twitter_api.TwitterAPI.get"):
+        with patch("ff_getter.twitter_api.TwitterAPI.get"):
             instance = TwitterAPI(dummy_api_key, dummy_api_secret, dummy_access_token_key, dummy_access_token_secret)
         return instance
 
@@ -43,7 +43,7 @@ class TestTwitterAPI(unittest.TestCase):
 
     def test_init(self):
         with ExitStack() as stack:
-            mock_get = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI.get"))
+            mock_get = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI.get"))
 
             dummy_api_key = "dummy_api_key"
             dummy_api_secret = "dummy_api_secret"
@@ -82,7 +82,7 @@ class TestTwitterAPI(unittest.TestCase):
     def test_wait_until_reset(self):
         with ExitStack() as stack:
             mock_logger = stack.enter_context(patch.object(logger, "debug"))
-            mock_wait = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI._wait"))
+            mock_wait = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI._wait"))
 
             dt_format = "%Y-%m-%d %H:%M:%S"
             now_time_str = "2022-10-19 10:00:00"
@@ -116,11 +116,11 @@ class TestTwitterAPI(unittest.TestCase):
     def test_request(self):
         with ExitStack() as stack:
             mock_logger = stack.enter_context(patch.object(logger, "warning"))
-            mock_oauth_get = stack.enter_context(patch("ffgetter.twitter_api.OAuth1Session.get"))
-            mock_oauth_post = stack.enter_context(patch("ffgetter.twitter_api.OAuth1Session.post"))
-            mock_oauth_delete = stack.enter_context(patch("ffgetter.twitter_api.OAuth1Session.delete"))
-            mock_wait_until_reset = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI._wait_until_reset"))
-            mock_wait = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI._wait"))
+            mock_oauth_get = stack.enter_context(patch("ff_getter.twitter_api.OAuth1Session.get"))
+            mock_oauth_post = stack.enter_context(patch("ff_getter.twitter_api.OAuth1Session.post"))
+            mock_oauth_delete = stack.enter_context(patch("ff_getter.twitter_api.OAuth1Session.delete"))
+            mock_wait_until_reset = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI._wait_until_reset"))
+            mock_wait = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI._wait"))
 
             endpoint_url = TwitterAPIEndpoint.USER_LOOKUP_ME.value
             dummy_params = {"dummy_params": "dummy_params"}
@@ -169,7 +169,7 @@ class TestTwitterAPI(unittest.TestCase):
 
     def test_get(self):
         with ExitStack() as stack:
-            mock_request = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI.request"))
+            mock_request = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI.request"))
 
             dummy_endpoint_url = "dummy_endpoint_url"
             dummy_params = {"dummy_params": "dummy_params"}
@@ -184,7 +184,7 @@ class TestTwitterAPI(unittest.TestCase):
 
     def test_post(self):
         with ExitStack() as stack:
-            mock_request = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI.request"))
+            mock_request = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI.request"))
 
             dummy_endpoint_url = "dummy_endpoint_url"
             dummy_params = {"dummy_params": "dummy_params"}
@@ -199,7 +199,7 @@ class TestTwitterAPI(unittest.TestCase):
 
     def test_get_user_id(self):
         with ExitStack() as stack:
-            mock_get = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI.get"))
+            mock_get = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI.get"))
             user_id = 12345678
             mock_get.return_value = {"data": {"id": str(user_id)}}
             twitter = self._get_instance()
@@ -217,25 +217,22 @@ class TestTwitterAPI(unittest.TestCase):
 
     def test_get_following(self):
         with ExitStack() as stack:
-            mock_get = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI.get"))
+            mock_get = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI.get"))
             user_id = 12345678
-            expect_data = [
-                {"id": f"{user_id}{i}", "name": f"ユーザー{i}", "username": f"screen_name_{i}"}
-                for i in range(5)
-            ]
-            mock_get.return_value = {
-                "data": expect_data
-            }
+            expect_data = [{"id": f"{user_id}{i}", "name": f"ユーザー{i}", "username": f"screen_name_{i}"} for i in range(5)]
+            mock_get.return_value = {"data": expect_data}
             twitter = self._get_instance()
             actual = twitter.get_following(UserId(user_id))
-            expect = FollowingList.create([
-                Following.create(
-                    data.get("id"),
-                    data.get("name"),
-                    data.get("username"),
-                )
-                for data in expect_data
-            ])
+            expect = FollowingList.create(
+                [
+                    Following.create(
+                        data.get("id"),
+                        data.get("name"),
+                        data.get("username"),
+                    )
+                    for data in expect_data
+                ]
+            )
             self.assertEqual(expect, actual)
 
             MAX_RESULTS = 1000
@@ -244,25 +241,22 @@ class TestTwitterAPI(unittest.TestCase):
 
     def test_get_follower(self):
         with ExitStack() as stack:
-            mock_get = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI.get"))
+            mock_get = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI.get"))
             user_id = 12345678
-            expect_data = [
-                {"id": f"{user_id}{i}", "name": f"ユーザー{i}", "username": f"screen_name_{i}"}
-                for i in range(5)
-            ]
-            mock_get.return_value = {
-                "data": expect_data
-            }
+            expect_data = [{"id": f"{user_id}{i}", "name": f"ユーザー{i}", "username": f"screen_name_{i}"} for i in range(5)]
+            mock_get.return_value = {"data": expect_data}
             twitter = self._get_instance()
             actual = twitter.get_follower(UserId(user_id))
-            expect = FollowerList.create([
-                Follower.create(
-                    data.get("id"),
-                    data.get("name"),
-                    data.get("username"),
-                )
-                for data in expect_data
-            ])
+            expect = FollowerList.create(
+                [
+                    Follower.create(
+                        data.get("id"),
+                        data.get("name"),
+                        data.get("username"),
+                    )
+                    for data in expect_data
+                ]
+            )
             self.assertEqual(expect, actual)
 
             MAX_RESULTS = 1000
@@ -271,7 +265,7 @@ class TestTwitterAPI(unittest.TestCase):
 
     def test_post_tweet(self):
         with ExitStack() as stack:
-            mock_post = stack.enter_context(patch("ffgetter.twitter_api.TwitterAPI.post"))
+            mock_post = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI.post"))
             mock_post.return_value = {"data": "result_ok"}
             tweet_str = "post_tweet_str"
             twitter = self._get_instance()

@@ -12,17 +12,17 @@ from typing import ClassVar
 import requests
 from requests_oauthlib import OAuth1Session
 
-from ffgetter.value_object.user_id import UserId
-from ffgetter.value_object.user_record import Follower, Following
-from ffgetter.value_object.user_record_list import FollowerList, FollowingList
+from ff_getter.value_object.user_id import UserId
+from ff_getter.value_object.user_record import Follower, Following
+from ff_getter.value_object.user_record_list import FollowerList, FollowingList
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
 
 
 class TwitterAPIEndpoint(Enum):
-    """TwitterAPI エンドポイント
-    """
+    """TwitterAPI エンドポイント"""
+
     USER_LOOKUP_ME = "https://api.twitter.com/2/users/me"
     FOLLOWING = "https://api.twitter.com/2/users/{}/following"
     FOLLOWERS = "https://api.twitter.com/2/users/{}/followers"
@@ -30,7 +30,7 @@ class TwitterAPIEndpoint(Enum):
 
 
 @dataclass
-class TwitterAPI():
+class TwitterAPI:
     """TwitterAPI 利用を司るクラス
 
     Args:
@@ -42,6 +42,7 @@ class TwitterAPI():
     Attributes:
         oauth (OAuth1Session): 認証セッション
     """
+
     api_key: str
     api_secret: str
     access_token_key: str
@@ -62,12 +63,7 @@ class TwitterAPI():
         if not isinstance(self.access_token_secret, str):
             raise TypeError("access_token_secret must be str.")
 
-        self.oauth = OAuth1Session(
-            self.api_key,
-            self.api_secret,
-            self.access_token_key,
-            self.access_token_secret
-        )
+        self.oauth = OAuth1Session(self.api_key, self.api_secret, self.access_token_key, self.access_token_secret)
 
         # 疎通確認
         url = TwitterAPIEndpoint.USER_LOOKUP_ME.value
@@ -182,7 +178,7 @@ class TwitterAPI():
                 self._wait_until_reset(response)
             except Exception as e:
                 # 原因不明：徐々に待機時間を増やしてとりあえず待つ(exp backoff)
-                wair_seconds = 8 ** i
+                wair_seconds = 8**i
                 n = time.mktime(datetime.now().timetuple())
                 self._wait(n + wair_seconds)
             logger.warning(f"retry ({i+1}/{RETRY_NUM}) ...")
@@ -190,13 +186,11 @@ class TwitterAPI():
             raise requests.HTTPError("Twitter API error : exceed RETRY_NUM.")
 
     def get(self, endpoint_url: str, params: dict = {}) -> dict:
-        """GETリクエストのエイリアス
-        """
+        """GETリクエストのエイリアス"""
         return self.request(endpoint_url=endpoint_url, params=params, method="GET")
 
     def post(self, endpoint_url: str, params: dict = {}) -> dict:
-        """POSTリクエストのエイリアス
-        """
+        """POSTリクエストのエイリアス"""
         return self.request(endpoint_url=endpoint_url, params=params, method="POST")
 
     def get_user_id(self) -> UserId:
@@ -237,9 +231,7 @@ class TwitterAPI():
         next_token = ""
         following_list = []
         while True:
-            params = {
-                "max_results": MAX_RESULTS
-            }
+            params = {"max_results": MAX_RESULTS}
             if next_token != "":
                 params["pagination_token"] = next_token
             data_dict = self.get(url, params=params)
@@ -281,9 +273,7 @@ class TwitterAPI():
         next_token = ""
         follower_list = []
         while True:
-            params = {
-                "max_results": MAX_RESULTS
-            }
+            params = {"max_results": MAX_RESULTS}
             if next_token != "":
                 params["pagination_token"] = next_token
             data_dict = self.get(url, params=params)
@@ -332,6 +322,7 @@ if __name__ == "__main__":
             getLogger(name).disabled = True
 
     import configparser
+
     config = configparser.ConfigParser()
     config.read_file(Path("./config/config.ini").open("r", encoding="utf-8"))
     config_twitter_token = config["twitter_token_keys_v2"]

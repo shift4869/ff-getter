@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import Self
 
-from ffgetter.value_object.screen_name import ScreenName
-from ffgetter.value_object.user_id import UserId
-from ffgetter.value_object.user_name import UserName
+from ff_getter.value_object.screen_name import ScreenName
+from ff_getter.value_object.user_id import UserId
+from ff_getter.value_object.user_name import UserName
 
 
 @dataclass(frozen=True)
-class UserRecord():
+class UserRecord:
     """レコード
 
     Args:
@@ -15,6 +15,7 @@ class UserRecord():
         _name (UserName): ユーザ名
         _screen_name (ScreenName): スクリーンネーム
     """
+
     _id: UserId
     _name: UserName
     _screen_name: ScreenName
@@ -62,8 +63,7 @@ class UserRecord():
 
     @classmethod
     def create(cls, id_str: str, name: str, screen_name: str) -> Self:
-        """レコード作成
-        """
+        """レコード作成"""
         user_id = UserId(int(id_str))
         user_name = UserName(name)
         screen_name = ScreenName(screen_name)
@@ -72,15 +72,15 @@ class UserRecord():
 
 @dataclass(frozen=True)
 class Following(UserRecord):
-    """Following レコード
-    """
+    """Following レコード"""
+
     pass
 
 
 @dataclass(frozen=True)
 class Follower(UserRecord):
-    """Follower レコード
-    """
+    """Follower レコード"""
+
     pass
 
 

@@ -7,13 +7,13 @@ from typing import ClassVar
 
 from jinja2 import Template
 
-from ffgetter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList
-from ffgetter.value_object.user_record import Follower, Following
-from ffgetter.value_object.user_record_list import FollowerList, FollowingList
+from ff_getter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList
+from ff_getter.value_object.user_record import Follower, Following
+from ff_getter.value_object.user_record_list import FollowerList, FollowingList
 
 
 @dataclass(frozen=True)
-class Directory():
+class Directory:
     """ディレクトリ操作を司るクラス
 
     カレントディレクトリはこのファイルが存在する一つ上のディレクトリとなる
@@ -30,6 +30,7 @@ class Directory():
         RESULT_DIRECTORY (str): 保存する際の結果保存ディレクトリ, デフォルトは"./result/"
         BACKUP_DIRECTORY (str): 古い結果を移動させる先のディレクトリ, デフォルトは"./bak/"
     """
+
     base_path: ClassVar[Path]
 
     FILE_NAME_BASE = "ff_list"
@@ -162,12 +163,7 @@ class Directory():
                     prev_follower_list.append(prev_follower)
         return FollowerList.create(prev_follower_list)
 
-    def save_file(self,
-                  target_username: str,
-                  following_list: FollowingList,
-                  follower_list: FollowerList,
-                  diff_following_list: DiffFollowingList,
-                  diff_follower_list: DiffFollowerList) -> Path:
+    def save_file(self, target_username: str, following_list: FollowingList, follower_list: FollowerList, diff_following_list: DiffFollowingList, diff_follower_list: DiffFollowerList) -> Path:
         """結果をファイルに保存する
 
         Args:
@@ -211,23 +207,25 @@ class Directory():
 
         # レンダリング
         template: Template = Template(template_str)
-        rendered_str = template.render({
-            "today_str": today_str,
-            "target_username": target_username,
-            "following_caption": following_caption,
-            "following_list": t_following_list,
-            "follower_caption": follower_caption,
-            "follower_list": t_follower_list,
-            "difference_caption": difference_caption,
-            "diff_following_list": t_diff_following_list,
-            "diff_follower_list": t_diff_follower_list,
-        })
+        rendered_str = template.render(
+            {
+                "today_str": today_str,
+                "target_username": target_username,
+                "following_caption": following_caption,
+                "following_list": t_following_list,
+                "follower_caption": follower_caption,
+                "follower_list": t_follower_list,
+                "difference_caption": difference_caption,
+                "diff_following_list": t_diff_following_list,
+                "diff_follower_list": t_diff_follower_list,
+            }
+        )
 
         # ファイル保存
         with file_path.open("w", encoding="utf-8") as fout:
             fout.write(rendered_str)
         return file_path
-    
+
     def move_old_file(self, reserved_file_num: int) -> list[str] | FileExistsError:
         """古いファイルを移動させる
 
@@ -272,12 +270,12 @@ if __name__ == "__main__":
     prev_follower_list = directory.get_last_follower()
     print(len(prev_follower_list))
 
-    from ffgetter.value_object.diff_record_list import DiffType
-    from ffgetter.value_object.screen_name import ScreenName
-    from ffgetter.value_object.user_id import UserId
-    from ffgetter.value_object.user_name import UserName
-    from ffgetter.value_object.user_record import Following
-    from ffgetter.value_object.user_record_list import FollowerList, FollowingList
+    from ff_getter.value_object.diff_record_list import DiffType
+    from ff_getter.value_object.screen_name import ScreenName
+    from ff_getter.value_object.user_id import UserId
+    from ff_getter.value_object.user_name import UserName
+    from ff_getter.value_object.user_record_list import FollowerList, FollowingList
+
     diff_type = DiffType.ADD
     user_id = UserId(123)
     user_name = UserName("ユーザー1")

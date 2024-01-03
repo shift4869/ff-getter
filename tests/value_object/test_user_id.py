@@ -1,7 +1,7 @@
 import sys
 import unittest
 
-from ffgetter.value_object.user_id import UserId
+from ff_getter.value_object.user_id import UserId
 
 
 class TestUserId(unittest.TestCase):

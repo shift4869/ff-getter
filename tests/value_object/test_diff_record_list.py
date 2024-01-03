@@ -1,10 +1,10 @@
 import sys
 import unittest
 
-from ffgetter.value_object.diff_record import DiffRecord
-from ffgetter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList, DiffRecordList
-from ffgetter.value_object.user_record import UserRecord
-from ffgetter.value_object.user_record_list import UserRecordList
+from ff_getter.value_object.diff_record import DiffRecord
+from ff_getter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList, DiffRecordList
+from ff_getter.value_object.user_record import UserRecord
+from ff_getter.value_object.user_record_list import UserRecordList
 
 
 class TestDiffRecordList(unittest.TestCase):

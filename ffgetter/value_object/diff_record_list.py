@@ -1,10 +1,9 @@
-# coding: utf-8
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Iterable, Iterator, Self
 
-from ffgetter.value_object.DiffRecord import DiffFollower, DiffFollowing, DiffRecord, DiffType
-from ffgetter.value_object.UserRecordList import UserRecordList
+from ffgetter.value_object.diff_record import DiffFollower, DiffFollowing, DiffRecord, DiffType
+from ffgetter.value_object.user_record_list import UserRecordList
 
 
 @dataclass(frozen=True)
@@ -129,9 +128,9 @@ class DiffFollowerList(DiffRecordList):
 
 
 if __name__ == "__main__":
-    from ffgetter.value_object.ScreenName import ScreenName
-    from ffgetter.value_object.UserId import UserId
-    from ffgetter.value_object.UserName import UserName
+    from ffgetter.value_object.screen_name import ScreenName
+    from ffgetter.value_object.user_id import UserId
+    from ffgetter.value_object.user_name import UserName
 
     diff_type = DiffType.ADD
     user_id = UserId(123)
@@ -164,8 +163,8 @@ if __name__ == "__main__":
     diff_follower_list = DiffFollowerList.create([diff_follower])
     print(diff_follower_list)
 
-    from ffgetter.value_object.UserRecord import Following
-    from ffgetter.value_object.UserRecordList import FollowerList, FollowingList
+    from ffgetter.value_object.user_record import Following
+    from ffgetter.value_object.user_record_list import FollowerList, FollowingList
     following = Following(user_id, user_name, screen_name)
     following1 = Following(UserId(1), user_name, screen_name)
     following2 = Following(UserId(2), user_name, screen_name)

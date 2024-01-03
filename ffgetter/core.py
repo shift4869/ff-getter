@@ -1,4 +1,3 @@
-# coding: utf-8
 import argparse
 import configparser
 import datetime
@@ -12,12 +11,12 @@ from typing import ClassVar
 
 from plyer import notification
 
-from ffgetter.Directory import Directory
-from ffgetter.LogMessage import Message as Msg
-from ffgetter.noapi.NoAPIFFFetcherBase import NoAPIFollowerFetcher, NoAPIFollowingFetcher
-from ffgetter.TwitterAPI import TwitterAPI
-from ffgetter.value_object.DiffRecordList import DiffFollowerList, DiffFollowingList
-from ffgetter.value_object.ScreenName import ScreenName
+from ffgetter.directory import Directory
+from ffgetter.log_message import Message as Msg
+from ffgetter.noapi.no_api_ff_fetcher_base import NoAPIFollowerFetcher, NoAPIFollowingFetcher
+from ffgetter.twitter_api import TwitterAPI
+from ffgetter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList
+from ffgetter.value_object.screen_name import ScreenName
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)

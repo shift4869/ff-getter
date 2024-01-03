@@ -1,11 +1,10 @@
-# coding: utf-8
 import sys
 import unittest
 
-from ffgetter.value_object.ScreenName import ScreenName
-from ffgetter.value_object.UserId import UserId
-from ffgetter.value_object.UserName import UserName
-from ffgetter.value_object.UserRecord import Follower, Following, UserRecord
+from ffgetter.value_object.screen_name import ScreenName
+from ffgetter.value_object.user_id import UserId
+from ffgetter.value_object.user_name import UserName
+from ffgetter.value_object.user_record import Follower, Following, UserRecord
 
 
 class TestUserRecord(unittest.TestCase):

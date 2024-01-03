@@ -1,4 +1,3 @@
-# coding: utf-8
 import datetime
 import os
 import shutil
@@ -9,11 +8,11 @@ from pathlib import Path
 from freezegun import freeze_time
 from jinja2 import Template
 
-from ffgetter.Directory import Directory
-from ffgetter.value_object.DiffRecord import DiffFollower, DiffFollowing, DiffRecord
-from ffgetter.value_object.DiffRecordList import DiffFollowerList, DiffFollowingList, DiffRecordList
-from ffgetter.value_object.UserRecord import Follower, Following, UserRecord
-from ffgetter.value_object.UserRecordList import FollowerList, FollowingList, UserRecordList
+from ffgetter.directory import Directory
+from ffgetter.value_object.diff_record import DiffFollower, DiffFollowing, DiffRecord
+from ffgetter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList, DiffRecordList
+from ffgetter.value_object.user_record import Follower, Following, UserRecord
+from ffgetter.value_object.user_record_list import FollowerList, FollowingList, UserRecordList
 
 
 class TestDirectory(unittest.TestCase):

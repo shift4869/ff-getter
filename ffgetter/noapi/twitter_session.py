@@ -1,4 +1,3 @@
-# coding: utf-8
 import asyncio
 import random
 import re
@@ -10,10 +9,10 @@ import pyppeteer
 from requests.models import Response
 from requests_html import HTML, AsyncHTMLSession, Element
 
-from ffgetter.noapi.Cookies import Cookies
-from ffgetter.noapi.LocalStorage import LocalStorage
-from ffgetter.noapi.Password import Password
-from ffgetter.noapi.Username import Username
+from ffgetter.noapi.cookies import Cookies
+from ffgetter.noapi.local_storage import LocalStorage
+from ffgetter.noapi.password import Password
+from ffgetter.noapi.username import Username
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)

@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 import logging.config
 import sys
@@ -13,9 +12,9 @@ from typing import ClassVar
 import requests
 from requests_oauthlib import OAuth1Session
 
-from ffgetter.value_object.UserId import UserId
-from ffgetter.value_object.UserRecord import Follower, Following
-from ffgetter.value_object.UserRecordList import FollowerList, FollowingList
+from ffgetter.value_object.user_id import UserId
+from ffgetter.value_object.user_record import Follower, Following
+from ffgetter.value_object.user_record_list import FollowerList, FollowingList
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)

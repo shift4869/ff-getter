@@ -1,4 +1,3 @@
-# coding: utf-8
 import datetime
 import os
 import re
@@ -8,9 +7,9 @@ from typing import ClassVar
 
 from jinja2 import Template
 
-from ffgetter.value_object.DiffRecordList import DiffFollowerList, DiffFollowingList
-from ffgetter.value_object.UserRecord import Follower, Following
-from ffgetter.value_object.UserRecordList import FollowerList, FollowingList
+from ffgetter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList
+from ffgetter.value_object.user_record import Follower, Following
+from ffgetter.value_object.user_record_list import FollowerList, FollowingList
 
 
 @dataclass(frozen=True)
@@ -273,12 +272,12 @@ if __name__ == "__main__":
     prev_follower_list = directory.get_last_follower()
     print(len(prev_follower_list))
 
-    from ffgetter.value_object.DiffRecordList import DiffType
-    from ffgetter.value_object.ScreenName import ScreenName
-    from ffgetter.value_object.UserId import UserId
-    from ffgetter.value_object.UserName import UserName
-    from ffgetter.value_object.UserRecord import Following
-    from ffgetter.value_object.UserRecordList import FollowerList, FollowingList
+    from ffgetter.value_object.diff_record_list import DiffType
+    from ffgetter.value_object.screen_name import ScreenName
+    from ffgetter.value_object.user_id import UserId
+    from ffgetter.value_object.user_name import UserName
+    from ffgetter.value_object.user_record import Following
+    from ffgetter.value_object.user_record_list import FollowerList, FollowingList
     diff_type = DiffType.ADD
     user_id = UserId(123)
     user_name = UserName("ユーザー1")

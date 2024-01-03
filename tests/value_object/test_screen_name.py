@@ -1,8 +1,7 @@
-# coding: utf-8
 import sys
 import unittest
 
-from ffgetter.value_object.ScreenName import ScreenName
+from ffgetter.value_object.screen_name import ScreenName
 
 
 class TestScreenName(unittest.TestCase):

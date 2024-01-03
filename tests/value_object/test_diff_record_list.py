@@ -1,11 +1,10 @@
-# coding: utf-8
 import sys
 import unittest
 
-from ffgetter.value_object.DiffRecord import DiffRecord
-from ffgetter.value_object.DiffRecordList import DiffFollowerList, DiffFollowingList, DiffRecordList
-from ffgetter.value_object.UserRecord import UserRecord
-from ffgetter.value_object.UserRecordList import UserRecordList
+from ffgetter.value_object.diff_record import DiffRecord
+from ffgetter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList, DiffRecordList
+from ffgetter.value_object.user_record import UserRecord
+from ffgetter.value_object.user_record_list import UserRecordList
 
 
 class TestDiffRecordList(unittest.TestCase):

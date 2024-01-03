@@ -1,8 +1,7 @@
-# coding: utf-8
 import sys
 import unittest
 
-from ffgetter.value_object.UserName import UserName
+from ffgetter.value_object.user_name import UserName
 
 
 class TestUserName(unittest.TestCase):

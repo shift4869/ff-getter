@@ -1,11 +1,10 @@
-# coding: utf-8
 import sys
 import unittest
 
-from ffgetter.value_object.DiffRecord import DiffFollower, DiffFollowing, DiffRecord, DiffType
-from ffgetter.value_object.ScreenName import ScreenName
-from ffgetter.value_object.UserId import UserId
-from ffgetter.value_object.UserName import UserName
+from ffgetter.value_object.diff_record import DiffFollower, DiffFollowing, DiffRecord, DiffType
+from ffgetter.value_object.screen_name import ScreenName
+from ffgetter.value_object.user_id import UserId
+from ffgetter.value_object.user_name import UserName
 
 
 class TestDiffRecord(unittest.TestCase):

@@ -1,8 +1,7 @@
-# coding: utf-8
 from dataclasses import dataclass
 from typing import Iterable, Iterator, Self
 
-from ffgetter.value_object.UserRecord import Follower, Following, UserRecord
+from ffgetter.value_object.user_record import Follower, Following, UserRecord
 
 
 @dataclass(frozen=True)
@@ -67,9 +66,9 @@ class FollowerList(UserRecordList):
 
 
 if __name__ == "__main__":
-    from ffgetter.value_object.ScreenName import ScreenName
-    from ffgetter.value_object.UserId import UserId
-    from ffgetter.value_object.UserName import UserName
+    from ffgetter.value_object.screen_name import ScreenName
+    from ffgetter.value_object.user_id import UserId
+    from ffgetter.value_object.user_name import UserName
 
     user_id = UserId(123)
     user_name = UserName("ユーザー1")

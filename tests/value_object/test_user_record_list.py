@@ -1,9 +1,8 @@
-# coding: utf-8
 import sys
 import unittest
 
-from ffgetter.value_object.UserRecord import UserRecord
-from ffgetter.value_object.UserRecordList import FollowerList, FollowingList, UserRecordList
+from ffgetter.value_object.user_record import UserRecord
+from ffgetter.value_object.user_record_list import FollowerList, FollowingList, UserRecordList
 
 
 class TestUserRecordList(unittest.TestCase):

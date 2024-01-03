@@ -1,11 +1,10 @@
-# coding: utf-8
 from dataclasses import dataclass
 from enum import Enum
 from typing import Self
 
-from ffgetter.value_object.ScreenName import ScreenName
-from ffgetter.value_object.UserId import UserId
-from ffgetter.value_object.UserName import UserName
+from ffgetter.value_object.screen_name import ScreenName
+from ffgetter.value_object.user_id import UserId
+from ffgetter.value_object.user_name import UserName
 
 
 class DiffType(Enum):

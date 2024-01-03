@@ -1,4 +1,3 @@
-# coding: utf-8
 import argparse
 import configparser
 import datetime
@@ -12,10 +11,10 @@ from pathlib import Path
 from freezegun import freeze_time
 from mock import MagicMock, patch
 
-from ffgetter.Core import Core, FFGetResult
-from ffgetter.TwitterAPI import TwitterAPI
+from ffgetter.core import Core, FFGetResult
+from ffgetter.twitter_api import TwitterAPI
 
-logger = getLogger("ffgetter.Core")
+logger = getLogger("ffgetter.core")
 logger.setLevel(WARNING)
 
 
@@ -57,14 +56,14 @@ class TestCore(unittest.TestCase):
 
     def test_run(self):
         with ExitStack() as stack:
-            mock_twitter_follorwing = stack.enter_context(patch("ffgetter.Core.NoAPIFollowingFetcher"))
-            mock_twitter_follorwer = stack.enter_context(patch("ffgetter.Core.NoAPIFollowerFetcher"))
-            mock_twitter = stack.enter_context(patch("ffgetter.Core.TwitterAPI"))
-            mock_directory = stack.enter_context(patch("ffgetter.Core.Directory"))
-            mock_diff_following_list = stack.enter_context(patch("ffgetter.Core.DiffFollowingList"))
-            mock_diff_follower_list = stack.enter_context(patch("ffgetter.Core.DiffFollowerList"))
-            mock_notification = stack.enter_context(patch("ffgetter.Core.notification"))
-            mock_subprocess = stack.enter_context(patch("ffgetter.Core.subprocess"))
+            mock_twitter_follorwing = stack.enter_context(patch("ffgetter.core.NoAPIFollowingFetcher"))
+            mock_twitter_follorwer = stack.enter_context(patch("ffgetter.core.NoAPIFollowerFetcher"))
+            mock_twitter = stack.enter_context(patch("ffgetter.core.TwitterAPI"))
+            mock_directory = stack.enter_context(patch("ffgetter.core.Directory"))
+            mock_diff_following_list = stack.enter_context(patch("ffgetter.core.DiffFollowingList"))
+            mock_diff_follower_list = stack.enter_context(patch("ffgetter.core.DiffFollowerList"))
+            mock_notification = stack.enter_context(patch("ffgetter.core.notification"))
+            mock_subprocess = stack.enter_context(patch("ffgetter.core.subprocess"))
             mock_logger_info = stack.enter_context(patch.object(logger, "info"))
             mock_logger_error = stack.enter_context(patch.object(logger, "error"))
             freeze_gun = stack.enter_context(freeze_time("2023-03-20 00:00:00"))

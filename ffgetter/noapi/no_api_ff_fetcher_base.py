@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 import pprint
 import shutil
@@ -8,9 +7,9 @@ from typing import Literal
 
 from twitter.scraper import Scraper
 
-from ffgetter.noapi.Username import Username
-from ffgetter.value_object.UserRecord import Follower, Following
-from ffgetter.value_object.UserRecordList import FollowerList, FollowingList
+from ffgetter.noapi.username import Username
+from ffgetter.value_object.user_record import Follower, Following
+from ffgetter.value_object.user_record_list import FollowerList, FollowingList
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)

@@ -15,8 +15,9 @@
     - その際に `./result/` ディレクトリ内に前回実行時の結果ファイルが存在するならば、差分も出力に含める。  
     - configで指定できる `reserved_file_num` 個(デフォルトは10個)以上のファイル数があるならば、古い順に `./bak/` ディレクトリに移動させる。  
 
+
 ## 前提として必要なもの
-- Pythonの実行環境(3.11以上)
+- Pythonの実行環境(3.12以上)
 - twitterのセッション情報
     - ブラウザでログイン済のアカウントについて、以下の値をクッキーから取得
         - ct0 (クッキー中)
@@ -39,7 +40,7 @@
     [twitter_api_client]
     ct0                 = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     auth_token          = xxxxxxxxxxxxxxxxxxxxxxxxxxx
-    target_screen_name        = {screen_name exclude @}
+    target_screen_name  = {screen_name exclude @}
     target_id           = 00000000
 
     # 実行後に結果のリプライを送るかどうか
@@ -56,11 +57,11 @@
     is_move_old_file = True
     reserved_file_num = 10
     ```
-1. `ff_getter.py` を実行する
+1. `main.py` を実行する
     ```
-    python ff_getter.py
+    python ./src/ff_getter/main.py
     ```
-    有効なオプションは `python ff_getter.py -h` で確認できる  
+    有効なオプションは `python ./src/ff_getter/main.py -h` で確認できる  
     configファイルの設定よりオプションでの指定の方が優先される  
 1. 出力された `./result/ff_list_{yyyymmdd}.txt` を確認する
 

@@ -105,9 +105,19 @@ class TestCore(unittest.TestCase):
 
                 directory.get_last_following.assert_called_once_with()
                 directory.get_last_follower.assert_called_once_with()
-                mock_diff_following_list.create_from_diff.assert_called_once_with(["dummy_following_list"], ["dummy_prev_following_list"])
-                mock_diff_follower_list.create_from_diff.assert_called_once_with(["dummy_follower_list"], ["dummy_prev_follower_list"])
-                directory.save_file.assert_called_once_with(target_screen_name, ["dummy_following_list"], ["dummy_follower_list"], ["dummy_diff_following_list"], ["dummy_diff_follower_list"])
+                mock_diff_following_list.create_from_diff.assert_called_once_with(
+                    ["dummy_following_list"], ["dummy_prev_following_list"]
+                )
+                mock_diff_follower_list.create_from_diff.assert_called_once_with(
+                    ["dummy_follower_list"], ["dummy_prev_follower_list"]
+                )
+                directory.save_file.assert_called_once_with(
+                    target_screen_name,
+                    ["dummy_following_list"],
+                    ["dummy_follower_list"],
+                    ["dummy_diff_following_list"],
+                    ["dummy_diff_follower_list"],
+                )
                 mock_twitter_follorwing.reset_mock()
                 mock_twitter_follorwer.reset_mock()
                 mock_directory.reset_mock()

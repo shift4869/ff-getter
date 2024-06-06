@@ -55,7 +55,7 @@ class Core:
     def __post_init__(self) -> None:
         """初期化後処理"""
         logger.info(Msg.CORE_INIT_START())
-        work_directory: Path = Path(os.path.dirname(__file__)).parent
+        work_directory: Path = Path(os.path.dirname(__file__)).parent.parent
         os.chdir(work_directory)
         logger.info(Msg.SET_CURRENT_DIRECTORY().format(str(work_directory)))
 
@@ -137,7 +137,9 @@ class Core:
 
             # (4)結果保存
             logger.info(Msg.SAVE_RESULT_START())
-            saved_file_path = directory.save_file(target_screen_name, following_list, follower_list, diff_following_list, diff_follower_list)
+            saved_file_path = directory.save_file(
+                target_screen_name, following_list, follower_list, diff_following_list, diff_follower_list
+            )
             logger.info(f"file saved to {str(saved_file_path)}.")
             logger.info(Msg.SAVE_RESULT_DONE())
 

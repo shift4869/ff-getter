@@ -74,7 +74,15 @@ class Cookies:
                     "secure": secure,
                     "httpOnly": httponly,
                 }:
-                    result_cookies.set(name, value, expires=expires, path=path, domain=domain, secure=secure, rest={"HttpOnly": httponly})
+                    result_cookies.set(
+                        name,
+                        value,
+                        expires=expires,
+                        path=path,
+                        domain=domain,
+                        secure=secure,
+                        rest={"HttpOnly": httponly},
+                    )
                 case _:
                     raise ValueError("cookie is not acceptable dict.")
         return result_cookies
@@ -140,7 +148,15 @@ class Cookies:
                 if set(list(sc.keys())) != set(cls.COOKIE_KEYS_LIST):
                     raise ValueError(f"{Cookies.TWITTER_COOKIE_PATH} : key format error.")
 
-                cookies.set(sc["name"], sc["value"], expires=sc["expires"], path=sc["path"], domain=sc["domain"], secure=bool(sc["secure"]), rest={"HttpOnly": bool(sc["httponly"])})
+                cookies.set(
+                    sc["name"],
+                    sc["value"],
+                    expires=sc["expires"],
+                    path=sc["path"],
+                    domain=sc["domain"],
+                    secure=bool(sc["secure"]),
+                    rest={"HttpOnly": bool(sc["httponly"])},
+                )
         return cookies
 
     @classmethod

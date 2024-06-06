@@ -34,7 +34,9 @@ class TwitterSession:
     loop: ClassVar[asyncio.AbstractEventLoop]  # イベントループ
 
     # 接続時に使用するヘッダー
-    HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"}
+    HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36"
+    }
     # トップページ
     TOP_URL = "https://twitter.com/"
     # ログインページ
@@ -140,7 +142,15 @@ class TwitterSession:
 
         # クッキーをセットする
         for c in self.cookies.cookies:
-            d = {"name": c.name, "value": c.value, "expires": c.expires, "path": c.path, "domain": c.domain, "secure": bool(c.secure), "httpOnly": bool(c._rest["HttpOnly"])}
+            d = {
+                "name": c.name,
+                "value": c.value,
+                "expires": c.expires,
+                "path": c.path,
+                "domain": c.domain,
+                "secure": bool(c.secure),
+                "httpOnly": bool(c._rest["HttpOnly"]),
+            }
             await page.setCookie(d)
 
         # ローカルストレージとクッキーセット後にページ遷移できるか確認
@@ -321,7 +331,7 @@ class TwitterSession:
                 logger.info(f"No exist Cookies and LocalStorage file.")
                 break
             except Exception as e:
-                logger.info(f"Cookies and LocalStorage loading retry ... ({i+1}/{RETRY_NUM}).")
+                logger.info(f"Cookies and LocalStorage loading retry ... ({i + 1}/{RETRY_NUM}).")
         else:
             logger.info(f"Retry num is exceed RETRY_NUM={RETRY_NUM}.")
 

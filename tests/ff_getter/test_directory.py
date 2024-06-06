@@ -19,7 +19,7 @@ class TestDirectory(unittest.TestCase):
     def _get_instance(self):
         # カレントディレクトリを tests に移動させる
         directory = Directory()
-        base_path = Path(os.path.dirname(__file__)).parent / "tests"
+        base_path = directory.base_path / "tests"
         object.__setattr__(directory, "base_path", base_path)
         directory.set_current()
         return directory
@@ -27,13 +27,13 @@ class TestDirectory(unittest.TestCase):
     def _make_sample_file(self) -> Path:
         directory = Directory()
         template_str = ""
-        template_file_path = Path(os.path.dirname(__file__)).parent / directory.TEMPLATE_FILE_PATH
+        template_file_path = Path(directory.TEMPLATE_FILE_PATH)
         with template_file_path.open("r") as fin:
             template_str = fin.read()
 
         template: Template = Template(template_str)
         yesterday_str = "20230317"
-        test_base_path = Path(os.path.dirname(__file__)).parent / "tests"
+        test_base_path = Path("./tests")
         file_path = test_base_path / directory.RESULT_DIRECTORY / f"{directory.FILE_NAME_BASE}_{yesterday_str}.txt"
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -60,26 +60,24 @@ class TestDirectory(unittest.TestCase):
         follower_caption = f"follower {follower_num}"
         difference_caption = f"difference with nothing (first run)"
 
-        rendered_str = template.render(
-            {
-                "today_str": yesterday_str,
-                "target_username": target_username,
-                "following_caption": following_caption,
-                "following_list": t_following_list,
-                "follower_caption": follower_caption,
-                "follower_list": t_follower_list,
-                "difference_caption": difference_caption,
-                "diff_following_list": t_diff_following_list,
-                "diff_follower_list": t_diff_follower_list,
-            }
-        )
+        rendered_str = template.render({
+            "today_str": yesterday_str,
+            "target_username": target_username,
+            "following_caption": following_caption,
+            "following_list": t_following_list,
+            "follower_caption": follower_caption,
+            "follower_list": t_follower_list,
+            "difference_caption": difference_caption,
+            "diff_following_list": t_diff_following_list,
+            "diff_follower_list": t_diff_follower_list,
+        })
         with file_path.open("w", encoding="utf-8") as fout:
             fout.write(rendered_str)
         return file_path
 
     def test_Directory(self):
         directory = Directory()
-        expect = Path(os.path.dirname(__file__)).parent
+        expect = Path(os.path.dirname(__file__)).parent.parent
         self.assertEqual(expect, directory.base_path)
 
         FILE_NAME_BASE = "ff_list"
@@ -93,7 +91,7 @@ class TestDirectory(unittest.TestCase):
 
     def test_set_current(self):
         directory = Directory()
-        expect = Path(os.path.dirname(__file__)).parent
+        expect = Path(os.path.dirname(__file__)).parent.parent
         self.assertEqual(expect, directory.set_current())
 
     def test_get_last_file_path(self):
@@ -185,7 +183,9 @@ class TestDirectory(unittest.TestCase):
 
             today_str = "20230318"
             yesterday_str = "20230317"
-            actual = directory.save_file(target_username, following_list, follower_list, diff_following_list, diff_follower_list)
+            actual = directory.save_file(
+                target_username, following_list, follower_list, diff_following_list, diff_follower_list
+            )
             expect = self._make_sample_file()
             expect_str = str(expect.absolute()).replace(yesterday_str, today_str)  # 日付部分の差異は吸収
             self.assertEqual(expect_str, str(actual.absolute()))

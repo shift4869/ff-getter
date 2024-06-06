@@ -21,10 +21,24 @@ if __name__ == "__main__":
     logger.info(Msg.APPLICATION_START())
     parser = None
     try:
-        parser = argparse.ArgumentParser(description="Following/Follower get.", epilog="require config file for ./config/config.ini")
-        parser.add_argument("--disable-notification", action="store_true", help="Notification after process run. Set this option, then don't notify after process run.")
-        parser.add_argument("--disable-after-open", action="store_true", help="Result file open after process run. Set this option, then don't open file after process run.")
-        parser.add_argument("--reserved-file-num", type=int, help="Number of result file reserved. Greater than, then move to backup directory after process run.")
+        parser = argparse.ArgumentParser(
+            description="Following/Follower get.", epilog="require config file for ./config/config.ini"
+        )
+        parser.add_argument(
+            "--disable-notification",
+            action="store_true",
+            help="Notification after process run. Set this option, then don't notify after process run.",
+        )
+        parser.add_argument(
+            "--disable-after-open",
+            action="store_true",
+            help="Result file open after process run. Set this option, then don't open file after process run.",
+        )
+        parser.add_argument(
+            "--reserved-file-num",
+            type=int,
+            help="Number of result file reserved. Greater than, then move to backup directory after process run.",
+        )
     except Exception as e:
         parser.print_help()
         logger.error(e)

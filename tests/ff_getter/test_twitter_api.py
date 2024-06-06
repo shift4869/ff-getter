@@ -219,20 +219,20 @@ class TestTwitterAPI(unittest.TestCase):
         with ExitStack() as stack:
             mock_get = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI.get"))
             user_id = 12345678
-            expect_data = [{"id": f"{user_id}{i}", "name": f"ユーザー{i}", "username": f"screen_name_{i}"} for i in range(5)]
+            expect_data = [
+                {"id": f"{user_id}{i}", "name": f"ユーザー{i}", "username": f"screen_name_{i}"} for i in range(5)
+            ]
             mock_get.return_value = {"data": expect_data}
             twitter = self._get_instance()
             actual = twitter.get_following(UserId(user_id))
-            expect = FollowingList.create(
-                [
-                    Following.create(
-                        data.get("id"),
-                        data.get("name"),
-                        data.get("username"),
-                    )
-                    for data in expect_data
-                ]
-            )
+            expect = FollowingList.create([
+                Following.create(
+                    data.get("id"),
+                    data.get("name"),
+                    data.get("username"),
+                )
+                for data in expect_data
+            ])
             self.assertEqual(expect, actual)
 
             MAX_RESULTS = 1000
@@ -243,20 +243,20 @@ class TestTwitterAPI(unittest.TestCase):
         with ExitStack() as stack:
             mock_get = stack.enter_context(patch("ff_getter.twitter_api.TwitterAPI.get"))
             user_id = 12345678
-            expect_data = [{"id": f"{user_id}{i}", "name": f"ユーザー{i}", "username": f"screen_name_{i}"} for i in range(5)]
+            expect_data = [
+                {"id": f"{user_id}{i}", "name": f"ユーザー{i}", "username": f"screen_name_{i}"} for i in range(5)
+            ]
             mock_get.return_value = {"data": expect_data}
             twitter = self._get_instance()
             actual = twitter.get_follower(UserId(user_id))
-            expect = FollowerList.create(
-                [
-                    Follower.create(
-                        data.get("id"),
-                        data.get("name"),
-                        data.get("username"),
-                    )
-                    for data in expect_data
-                ]
-            )
+            expect = FollowerList.create([
+                Follower.create(
+                    data.get("id"),
+                    data.get("name"),
+                    data.get("username"),
+                )
+                for data in expect_data
+            ])
             self.assertEqual(expect, actual)
 
             MAX_RESULTS = 1000

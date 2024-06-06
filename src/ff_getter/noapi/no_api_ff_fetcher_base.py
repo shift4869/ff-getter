@@ -22,7 +22,14 @@ class NoAPIFFFetcherBase:
     target_id: int
     ff_type: Literal["following", "follower"]
 
-    def __init__(self, ct0: str, auth_token: str, target_screen_name: str, target_id: int, ff_type: Literal["following", "follower"]) -> None:
+    def __init__(
+        self,
+        ct0: str,
+        auth_token: str,
+        target_screen_name: str,
+        target_id: int,
+        ff_type: Literal["following", "follower"],
+    ) -> None:
         target_id = int(target_id)
 
         if not isinstance(ct0, str):
@@ -115,7 +122,14 @@ class NoAPIFFFetcherBase:
         # 辞書パース
         data_list: list[Following] | list[Follower] = []
         for r in fetched_jsons:
-            instructions = r.get("data", {}).get("user", {}).get("result", {}).get("timeline", {}).get("timeline", {}).get("instructions", [{}])
+            instructions = (
+                r.get("data", {})
+                .get("user", {})
+                .get("result", {})
+                .get("timeline", {})
+                .get("timeline", {})
+                .get("instructions", [{}])
+            )
             if not instructions:
                 continue
             for instruction in instructions:

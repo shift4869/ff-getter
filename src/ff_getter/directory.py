@@ -41,9 +41,9 @@ class Directory:
     def __post_init__(self) -> None:
         """初期化後処理
 
-        カレントディレクトリをこのファイルが存在する一つ上のディレクトリとして設定する
+        カレントディレクトリをこのファイルが存在する2つ上のディレクトリとして設定する
         """
-        object.__setattr__(self, "base_path", Path(os.path.dirname(__file__)).parent)
+        object.__setattr__(self, "base_path", Path(os.path.dirname(__file__)).parent.parent)
         self.set_current()
 
         if not Path(self.TEMPLATE_FILE_PATH).is_file():
@@ -163,7 +163,14 @@ class Directory:
                     prev_follower_list.append(prev_follower)
         return FollowerList.create(prev_follower_list)
 
-    def save_file(self, target_username: str, following_list: FollowingList, follower_list: FollowerList, diff_following_list: DiffFollowingList, diff_follower_list: DiffFollowerList) -> Path:
+    def save_file(
+        self,
+        target_username: str,
+        following_list: FollowingList,
+        follower_list: FollowerList,
+        diff_following_list: DiffFollowingList,
+        diff_follower_list: DiffFollowerList,
+    ) -> Path:
         """結果をファイルに保存する
 
         Args:
@@ -207,19 +214,17 @@ class Directory:
 
         # レンダリング
         template: Template = Template(template_str)
-        rendered_str = template.render(
-            {
-                "today_str": today_str,
-                "target_username": target_username,
-                "following_caption": following_caption,
-                "following_list": t_following_list,
-                "follower_caption": follower_caption,
-                "follower_list": t_follower_list,
-                "difference_caption": difference_caption,
-                "diff_following_list": t_diff_following_list,
-                "diff_follower_list": t_diff_follower_list,
-            }
-        )
+        rendered_str = template.render({
+            "today_str": today_str,
+            "target_username": target_username,
+            "following_caption": following_caption,
+            "following_list": t_following_list,
+            "follower_caption": follower_caption,
+            "follower_list": t_follower_list,
+            "difference_caption": difference_caption,
+            "diff_following_list": t_diff_following_list,
+            "diff_follower_list": t_diff_follower_list,
+        })
 
         # ファイル保存
         with file_path.open("w", encoding="utf-8") as fout:
@@ -286,7 +291,10 @@ if __name__ == "__main__":
     following_list1 = FollowingList.create([following, following1])
     following_list2 = FollowingList.create([following, following2])
     diff_following = DiffFollowingList.create_from_diff(following_list1, following_list2)
-    rendered_str = directory.save_file(prev_following_list, prev_follower_list, diff_following, diff_following)
+    diff_follower = DiffFollowerList.create_from_diff(following_list1, following_list2)
+    rendered_str = directory.save_file(
+        user_name.name, prev_following_list, prev_follower_list, diff_following, diff_follower
+    )
     print(rendered_str)
 
     res = directory.move_old_file(10)

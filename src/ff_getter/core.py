@@ -79,19 +79,14 @@ class Core:
             following_list = None
             follower_list = None
             logger.info(Msg.TAC_MODE())
-            config = self.config["twitter_api_client"]
-            ct0 = config["ct0"]
-            auth_token = config["auth_token"]
-            target_screen_name = config["target_screen_name"]
-            target_id = config["target_id"]
 
             logger.info(Msg.GET_FOLLOWING_LIST_START())
-            following_fetcher = FollowingFetcher(ct0, auth_token, target_screen_name, target_id)
+            following_fetcher = FollowingFetcher(self.config)
             following_list = following_fetcher.fetch()
             logger.info(Msg.GET_FOLLOWING_LIST_DONE())
 
             logger.info(Msg.GET_FOLLOWER_LIST_START())
-            follower_fetcher = FollowerFetcher(ct0, auth_token, target_screen_name, target_id)
+            follower_fetcher = FollowerFetcher(self.config)
             follower_list = follower_fetcher.fetch()
             logger.info(Msg.GET_FOLLOWER_LIST_DONE())
 
@@ -120,6 +115,7 @@ class Core:
 
             # (4)結果保存
             logger.info(Msg.SAVE_RESULT_START())
+            target_screen_name = self.config["twitter_api_client"]["target_screen_name"]
             saved_file_path = directory.save_file(
                 target_screen_name, following_list, follower_list, diff_following_list, diff_follower_list
             )
@@ -141,7 +137,6 @@ class Core:
                         message=done_msg,
                     )
             except Exception:
-                # logger.info("Reply post failed.")
                 logger.info("Notification failed.")
 
             logger.info("")
@@ -161,7 +156,7 @@ class Core:
                 logger.info(Msg.MOVE_OLD_FILE_DONE())
 
             # (7)完了後にファイルを開く
-            is_after_open = self.config["after_open"].getboolean("is_after_open")
+            is_after_open = self.config["after_open"]["is_after_open"]
             if is_after_open:
                 subprocess.Popen(["start", str(saved_file_path)], shell=True)
                 logger.info(Msg.RESULT_FILE_OPENING().format(str(saved_file_path)))
@@ -177,8 +172,5 @@ if __name__ == "__main__":
     import logging.config
 
     logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
-    for name in logging.root.manager.loggerDict:
-        if "ff_getter" not in name:
-            getLogger(name).disabled = True
     core = Core()
     logger.info(core.run())

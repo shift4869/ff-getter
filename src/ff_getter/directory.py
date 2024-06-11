@@ -1,5 +1,4 @@
 import datetime
-import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,18 +14,10 @@ from ff_getter.value_object.user_record_list import FollowerList, FollowingList
 @dataclass(frozen=True)
 class Directory:
     """ディレクトリ操作を司るクラス
-
-    カレントディレクトリはこのファイルが存在する一つ上のディレクトリとなる
-    通常は ./FFGetter/ がカレントディレクトリとなる
-
-    Args:
-        None
-
     Attributes:
         base_path (Path): 基準となるパス
-        CONFIG_FILE_PATH (str): config 設定ファイルがあるパス
-        TEMPLATE_FILE_PATH (str): 出力内容のテンプレートファイルパス, デフォルトは"./ext/template.txt"
         FILE_NAME_BASE (str): 保存する際の基幹ファイル名, デフォルトは"ff_list"
+        TEMPLATE_FILE_PATH (str): 出力内容のテンプレートファイルパス, デフォルトは"./ext/template.txt"
         RESULT_DIRECTORY (str): 保存する際の結果保存ディレクトリ, デフォルトは"./result/"
         BACKUP_DIRECTORY (str): 古い結果を移動させる先のディレクトリ, デフォルトは"./bak/"
     """
@@ -39,26 +30,13 @@ class Directory:
     BACKUP_DIRECTORY = "./bak/"
 
     def __post_init__(self) -> None:
-        """初期化後処理
-
-        カレントディレクトリをこのファイルが存在する2つ上のディレクトリとして設定する
-        """
-        object.__setattr__(self, "base_path", Path(os.path.dirname(__file__)).parent.parent)
-        self.set_current()
+        """初期化後処理"""
+        object.__setattr__(self, "base_path", Path().resolve())
 
         if not Path(self.TEMPLATE_FILE_PATH).is_file():
             raise FileNotFoundError(f"template file is not found. {self.TEMPLATE_FILE_PATH} is not exist.")
         Path(self.RESULT_DIRECTORY).mkdir(parents=True, exist_ok=True)
         Path(self.BACKUP_DIRECTORY).mkdir(parents=True, exist_ok=True)
-
-    def set_current(self) -> Path:
-        """カレントディレクトリを設定する
-
-        Returns:
-            base_path (Path): 設定したディレクトリパス
-        """
-        os.chdir(self.base_path)
-        return self.base_path
 
     def get_last_file_path(self) -> Path | None:
         """前回実行ファイルのパスを取得する

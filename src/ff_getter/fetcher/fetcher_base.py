@@ -1,11 +1,11 @@
 import shutil
 from logging import INFO, getLogger
 from pathlib import Path
-from typing import Literal
 
+import orjson
 from twitter.scraper import Scraper
 
-from ff_getter.util import find_values
+from ff_getter.util import FF_Type, find_values
 from ff_getter.value_object.user_name import UserName
 from ff_getter.value_object.user_record import Follower, Following
 from ff_getter.value_object.user_record_list import FollowerList, FollowingList
@@ -19,15 +19,15 @@ class FetcherBase:
     auth_token: str
     target_screen_name: UserName
     target_id: int
-    ff_type: Literal["following", "follower"]
+    ff_type: FF_Type
     is_debug: bool
 
-    def __init__(self, config: dict, ff_type: Literal["following", "follower"], is_debug: False = False) -> None:
+    def __init__(self, config: dict, ff_type: FF_Type, is_debug: False = False) -> None:
         """FetcherBase
 
         Args:
             config (dict): config.json から取得した設定辞書
-            ff_type (str): "following", "follower" のどちらか
+            ff_type (FF_Type): "following", "follower" のどちらか
             is_debug (False, optional): デバッグモードかどうか
 
         Raises:
@@ -48,8 +48,8 @@ class FetcherBase:
             case _:
                 raise ValueError("config dict is invalid.")
 
-        if not (isinstance(ff_type, str) and (ff_type in ["following", "follower"])):
-            raise ValueError('ff_type must be Literal["following", "follower"].')
+        if not (isinstance(ff_type, FF_Type) and ff_type in [FF_Type.following, FF_Type.follower]):
+            raise ValueError("ff_type must be in [FF_Type.following, FF_Type.follower].")
         if not isinstance(is_debug, bool):
             raise ValueError("is_debug must be bool.")
 
@@ -59,7 +59,7 @@ class FetcherBase:
     @property
     def cache_path(self) -> Path:
         """キャッシュファイルパス"""
-        return Path(__file__).parent / f"cache/{self.ff_type}/"
+        return Path(__file__).parent / f"cache/{self.ff_type.value}/"
 
     def fetch_jsons(self) -> list[dict]:
         """fetch
@@ -67,7 +67,7 @@ class FetcherBase:
         Returns:
             list[dict]: fetch したff情報辞書を格納したリスト
         """
-        logger.info(f"Fetched {self.ff_type} by TAC -> start")
+        logger.info(f"Fetched {self.ff_type.value} by TAC -> start")
 
         # キャッシュ保存場所の準備
         base_path = Path(self.cache_path)
@@ -76,21 +76,23 @@ class FetcherBase:
         base_path.mkdir(parents=True, exist_ok=True)
 
         # fetch
-        logger.info(f"Getting {self.ff_type} fetched -> start")
+        logger.info(f"Getting {self.ff_type.value} fetched -> start")
         fetched_contents: list[dict] = []
         if self.is_debug:
             # キャッシュから読み込み
-            cache_file_paths = Path(base_path).glob("**/*")
+            cache_file_paths = base_path.glob("**/*")
+            if not cache_file_paths:
+                raise ValueError(f"cache file not found, {str(base_path.resolve())}.")
             for cache_file_path in cache_file_paths:
                 json_dict = orjson.loads(cache_file_path.read_bytes())
                 fetched_contents.append(json_dict)
         else:
             scraper = Scraper(cookies={"ct0": self.ct0, "auth_token": self.auth_token}, pbar=False)
-            if self.ff_type == "following":
+            if self.ff_type == FF_Type.following:
                 fetched_contents = scraper.following([self.target_id])
-            elif self.ff_type == "follower":
+            elif self.ff_type == FF_Type.follower:
                 fetched_contents = scraper.followers([self.target_id])
-        logger.info(f"Getting {self.ff_type} fetched -> done")
+        logger.info(f"Getting {self.ff_type.value} fetched -> done")
 
         # キャッシュに保存
         for i, content in enumerate(fetched_contents):
@@ -104,7 +106,7 @@ class FetcherBase:
             json_dict = orjson.loads(Path(base_path / f"content_cache{i}.txt").read_bytes())
             result.append(json_dict)
 
-        logger.info(f"Fetched {self.ff_type} by TAC -> done")
+        logger.info(f"Fetched {self.ff_type.value} by TAC -> done")
         return result
 
     def interpret_json(self, json_dict: dict) -> dict:
@@ -118,9 +120,9 @@ class FetcherBase:
                     "itemContent": {"user_results": {"result": result}},
                 },
             }:
-                id_str = result.get("rest_id", "")
-                name = result.get("legacy", {}).get("name", "")
-                screen_name = result.get("legacy", {}).get("screen_name", "")
+                id_str = result["rest_id"]
+                name = result["legacy"]["name"]
+                screen_name = result["legacy"]["screen_name"]
                 return {
                     "id_str": id_str,
                     "name": name,
@@ -142,38 +144,41 @@ class FetcherBase:
         if not all([isinstance(fetched_json, dict) for fetched_json in fetched_jsons]):
             return []
 
+        ToConvertDataClass: type[Following] | type[Follower] = (
+            Following if self.ff_type == FF_Type.following else Follower
+        )
+        ToConvertClass: type[FollowingList] | type[FollowerList] = (
+            FollowingList if self.ff_type == FF_Type.following else FollowerList
+        )
+
         # 辞書パース
         data_list: list[Following] | list[Follower] = []
         for fetched_json in fetched_jsons:
-            entries: list[dict] = find_values(fetched_json, "entries", False)
+            entries: list[dict] = find_values(fetched_json, "entries", True)
             for entry in entries:
                 data_dict = self.interpret_json(entry)
                 if not data_dict:
                     continue
-                if self.ff_type == "following":
-                    ff_data = Following.create(
-                        data_dict.get("id_str", ""),
-                        data_dict.get("name", ""),
-                        data_dict.get("screen_name", ""),
-                    )
-                elif self.ff_type == "follower":
-                    ff_data = Follower.create(
-                        data_dict.get("id_str", ""),
-                        data_dict.get("name", ""),
-                        data_dict.get("screen_name", ""),
-                    )
+                ff_data = ToConvertDataClass.create(
+                    data_dict.get("id_str", ""),
+                    data_dict.get("name", ""),
+                    data_dict.get("screen_name", ""),
+                )
                 data_list.append(ff_data)
         if not data_list:
             # 辞書パースエラー or 1件も無かった
             return []
 
-        if self.ff_type == "following":
-            return FollowingList.create(data_list)
-        elif self.ff_type == "follower":
-            return FollowerList.create(data_list)
-        return []
+        return ToConvertClass.create(data_list)
 
     def fetch(self) -> FollowingList | FollowerList:
+        """fetch
+
+        following か follower かは self.ff_type の値で判定される
+
+        Returns:
+            FollowingList | FollowerList: fetch結果のリストインスタンス
+        """
         fetched_jsons = self.fetch_jsons()
         result = self.to_convert(fetched_jsons)
         return result
@@ -181,19 +186,17 @@ class FetcherBase:
 
 class FollowingFetcher(FetcherBase):
     def __init__(self, config: dict, is_debug: False = False) -> None:
-        super().__init__(config, "following", is_debug)
+        super().__init__(config, FF_Type.following, is_debug)
 
 
 class FollowerFetcher(FetcherBase):
     def __init__(self, config: dict, is_debug: False = False) -> None:
-        super().__init__(config, "follower", is_debug)
+        super().__init__(config, FF_Type.follower, is_debug)
 
 
 if __name__ == "__main__":
     import logging.config
     import pprint
-
-    import orjson
 
     logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
     CONFIG_FILE_NAME = "./config/config.json"
@@ -205,5 +208,4 @@ if __name__ == "__main__":
 
     fetcher = FollowerFetcher(config, is_debug=True)
     follower_list = fetcher.fetch()
-    pprint.pprint(len(follower_list))
     pprint.pprint(len(follower_list))

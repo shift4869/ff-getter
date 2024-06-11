@@ -14,22 +14,11 @@ from plyer import notification
 from ff_getter.directory import Directory
 from ff_getter.fetcher.fetcher_base import FollowerFetcher, FollowingFetcher
 from ff_getter.log_message import Message as Msg
+from ff_getter.util import Result
 from ff_getter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
-
-
-class FFGetResult(Enum):
-    """Core.run の結果を表す列挙型
-
-    Attributes:
-        SUCCESS (auto): 成功時
-        FAILED (auto): 失敗時
-    """
-
-    SUCCESS = auto()
-    FAILED = auto()
 
 
 @dataclass()
@@ -70,7 +59,7 @@ class Core:
         self.config = config
         logger.info(Msg.CORE_INIT_DONE())
 
-    def run(self) -> FFGetResult:
+    def run(self) -> Result:
         """ffgetter メイン実行
 
         (1)following と follower リストを取得する
@@ -179,9 +168,9 @@ class Core:
 
         except Exception as e:
             logger.error(e)
-            return FFGetResult.FAILED
+            return Result.failed
         logger.info(Msg.CORE_RUN_DONE())
-        return FFGetResult.SUCCESS
+        return Result.success
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ from pathlib import Path
 from freezegun import freeze_time
 from mock import MagicMock, patch
 
-from ff_getter.core import Core, FFGetResult
+from ff_getter.core import Core, Result
 
 logger = getLogger("ff_getter.core")
 logger.setLevel(WARNING)
@@ -26,7 +26,7 @@ class TestCore(unittest.TestCase):
             "SUCCESS",
             "FAILED",
         ]
-        actual = [item.name for item in FFGetResult]
+        actual = [item.name for item in Result]
         self.assertEqual(expect, actual)
 
     def test_Core(self):
@@ -129,7 +129,7 @@ class TestCore(unittest.TestCase):
             core.config["move_old_file"]["reserved_file_num"] = "10"
             core.config["after_open"]["is_after_open"] = "True"
             actual = core.run()
-            expect = FFGetResult.SUCCESS
+            expect = Result.SUCCESS
             self.assertIs(expect, actual)
             mock_notification.notify.assert_called_once_with(
                 title="ffgetter",
@@ -145,7 +145,7 @@ class TestCore(unittest.TestCase):
             # (7)完了後にファイルを開く のみFalse
             core.config["after_open"]["is_after_open"] = "False"
             actual = core.run()
-            expect = FFGetResult.SUCCESS
+            expect = Result.SUCCESS
             self.assertIs(expect, actual)
             mock_notification.notify.assert_called_once_with(
                 title="ffgetter",
@@ -162,7 +162,7 @@ class TestCore(unittest.TestCase):
             core.config["move_old_file"]["is_move_old_file"] = "False"
             core.config["after_open"]["is_after_open"] = "True"
             actual = core.run()
-            expect = FFGetResult.SUCCESS
+            expect = Result.SUCCESS
             self.assertIs(expect, actual)
             mock_notification.notify.assert_called_once_with(
                 title="ffgetter",
@@ -179,7 +179,7 @@ class TestCore(unittest.TestCase):
             core.config["notification"]["is_notify"] = "False"
             core.config["move_old_file"]["is_move_old_file"] = "True"
             actual = core.run()
-            expect = FFGetResult.SUCCESS
+            expect = Result.SUCCESS
             self.assertIs(expect, actual)
             mock_notification.notify.assert_not_called()
             reserved_file_num = int(core.config["move_old_file"]["reserved_file_num"])
@@ -191,7 +191,7 @@ class TestCore(unittest.TestCase):
             # 異常系
             mock_twitter_follorwing.side_effect = ValueError
             actual = core.run()
-            expect = FFGetResult.FAILED
+            expect = Result.FAILED
             self.assertIs(expect, actual)
 
 

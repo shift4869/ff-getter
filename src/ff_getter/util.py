@@ -1,10 +1,15 @@
-import enum
+from enum import Enum, auto
 from typing import Any
 
 
-class Result(enum.Enum):
-    success = enum.auto()
-    failed = enum.auto()
+class Result(Enum):
+    success = auto()
+    failed = auto()
+
+
+class FF_Type(Enum):
+    following = "following"
+    follower = "follower"
 
 
 def find_values(

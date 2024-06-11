@@ -13,12 +13,9 @@ dependencies = [
     "isort>=5.13.2",
     "jinja2>=3.1.4",
     "mock>=5.1.0",
+    "orjson>=3.10.4",
     "plyer>=2.1.0",
     "pycodestyle>=2.11.1",
-    "pyppeteer>=2.0.0",
-    "requests-html>=0.10.0",
-    "requests-oauthlib>=2.0.0",
-    "requests>=2.32.3",
     "ruff>=0.4.8",
     "twitter-api-client>=0.10.22",
 ]

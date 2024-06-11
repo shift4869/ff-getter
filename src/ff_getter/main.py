@@ -8,7 +8,7 @@ from ff_getter.log_message import Message as Msg
 
 logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
 for name in logging.root.manager.loggerDict:
-    if "ffgetter" not in name:
+    if "ff_getter" not in name:
         getLogger(name).disabled = True
 
 logger = getLogger(__name__)

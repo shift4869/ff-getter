@@ -12,7 +12,6 @@ from freezegun import freeze_time
 from mock import MagicMock, patch
 
 from ff_getter.core import Core, FFGetResult
-from ff_getter.twitter_api import TwitterAPI
 
 logger = getLogger("ff_getter.core")
 logger.setLevel(WARNING)
@@ -56,9 +55,8 @@ class TestCore(unittest.TestCase):
 
     def test_run(self):
         with ExitStack() as stack:
-            mock_twitter_follorwing = stack.enter_context(patch("ff_getter.core.NoAPIFollowingFetcher"))
-            mock_twitter_follorwer = stack.enter_context(patch("ff_getter.core.NoAPIFollowerFetcher"))
-            mock_twitter = stack.enter_context(patch("ff_getter.core.TwitterAPI"))
+            mock_twitter_follorwing = stack.enter_context(patch("ff_getter.core.FollowingFetcher"))
+            mock_twitter_follorwer = stack.enter_context(patch("ff_getter.core.FollowerFetcher"))
             mock_directory = stack.enter_context(patch("ff_getter.core.Directory"))
             mock_diff_following_list = stack.enter_context(patch("ff_getter.core.DiffFollowingList"))
             mock_diff_follower_list = stack.enter_context(patch("ff_getter.core.DiffFollowerList"))

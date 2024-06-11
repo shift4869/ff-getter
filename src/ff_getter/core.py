@@ -1,7 +1,6 @@
 import argparse
 import configparser
 import datetime
-import os
 import subprocess
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -9,14 +8,13 @@ from logging import INFO, getLogger
 from pathlib import Path
 from typing import ClassVar
 
+import orjson
 from plyer import notification
 
 from ff_getter.directory import Directory
+from ff_getter.fetcher.fetcher_base import FollowerFetcher, FollowingFetcher
 from ff_getter.log_message import Message as Msg
-from ff_getter.noapi.no_api_ff_fetcher_base import NoAPIFollowerFetcher, NoAPIFollowingFetcher
-from ff_getter.twitter_api import TwitterAPI
 from ff_getter.value_object.diff_record_list import DiffFollowerList, DiffFollowingList
-from ff_getter.value_object.screen_name import ScreenName
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
@@ -50,26 +48,25 @@ class Core:
     parser: argparse.ArgumentParser | None = None
     config: ClassVar[configparser.ConfigParser]
 
-    CONFIG_FILE_PATH = "./config/config.ini"
+    CONFIG_FILE_PATH = "./config/config.json"
 
     def __post_init__(self) -> None:
         """初期化後処理"""
         logger.info(Msg.CORE_INIT_START())
-        work_directory: Path = Path(os.path.dirname(__file__)).parent.parent
-        os.chdir(work_directory)
-        logger.info(Msg.SET_CURRENT_DIRECTORY().format(str(work_directory)))
+        current_path: Path = Path()
+        work_directory: str = str(current_path.resolve())
+        logger.info(Msg.SET_CURRENT_DIRECTORY().format(work_directory))
 
-        config = configparser.ConfigParser()
-        config.read_file(Path(self.CONFIG_FILE_PATH).open("r", encoding="utf-8"))
+        config = orjson.loads(Path(self.CONFIG_FILE_PATH).read_bytes())
         if self.parser:
             args = self.parser.parse_args()
             if args.disable_notification:
-                config["notification"]["is_notify"] = "False"
+                config["notification"]["is_notify"] = False
             if args.disable_after_open:
-                config["after_open"]["is_after_open"] = "False"
+                config["after_open"]["is_after_open"] = False
             if args.reserved_file_num:
-                config["move_old_file"]["is_move_old_file"] = "True"
-                config["move_old_file"]["reserved_file_num"] = str(args.reserved_file_num)
+                config["move_old_file"]["is_move_old_file"] = True
+                config["move_old_file"]["reserved_file_num"] = int(args.reserved_file_num)
         self.config = config
         logger.info(Msg.CORE_INIT_DONE())
 
@@ -84,18 +81,15 @@ class Core:
         (6)古いファイルを移動させる
         (7)完了後にファイルを開く
 
-        Args:
-            None
-
         Returns:
-            FFGetResult: 成功時SUCCESS, 失敗時FAILED
+            FFGetResult: 成功時 SUCCESS, 失敗時 FAILED
         """
         logger.info(Msg.CORE_RUN_START())
         try:
-            # (1)NoAPIでffを取得
+            # (1)ffを取得
             following_list = None
             follower_list = None
-            logger.info(Msg.NO_API_MODE())
+            logger.info(Msg.TAC_MODE())
             config = self.config["twitter_api_client"]
             ct0 = config["ct0"]
             auth_token = config["auth_token"]
@@ -103,12 +97,12 @@ class Core:
             target_id = config["target_id"]
 
             logger.info(Msg.GET_FOLLOWING_LIST_START())
-            following_fetcher = NoAPIFollowingFetcher(ct0, auth_token, target_screen_name, target_id)
+            following_fetcher = FollowingFetcher(ct0, auth_token, target_screen_name, target_id)
             following_list = following_fetcher.fetch()
             logger.info(Msg.GET_FOLLOWING_LIST_DONE())
 
             logger.info(Msg.GET_FOLLOWER_LIST_START())
-            follower_fetcher = NoAPIFollowerFetcher(ct0, auth_token, target_screen_name, target_id)
+            follower_fetcher = FollowerFetcher(ct0, auth_token, target_screen_name, target_id)
             follower_list = follower_fetcher.fetch()
             logger.info(Msg.GET_FOLLOWER_LIST_DONE())
 
@@ -151,7 +145,7 @@ class Core:
             done_msg += f"follower num : {len(follower_list)}\n"
 
             try:
-                is_notify = self.config["notification"].getboolean("is_notify")
+                is_notify = self.config["notification"]["is_notify"]
                 if is_notify:
                     notification.notify(
                         title="ffgetter",
@@ -165,7 +159,7 @@ class Core:
             logger.info(done_msg)
 
             # (6)古いファイルを移動させる
-            is_move_old_file = self.config["move_old_file"].getboolean("is_move_old_file")
+            is_move_old_file = self.config["move_old_file"]["is_move_old_file"]
             if is_move_old_file:
                 logger.info(Msg.MOVE_OLD_FILE_START())
                 reserved_file_num = int(self.config["move_old_file"]["reserved_file_num"])
@@ -195,7 +189,7 @@ if __name__ == "__main__":
 
     logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
     for name in logging.root.manager.loggerDict:
-        if "ffgetter" not in name:
+        if "ff_getter" not in name:
             getLogger(name).disabled = True
     core = Core()
     logger.info(core.run())

@@ -18,8 +18,7 @@ class Message(Enum):
     CORE_RUN_START = "Core run -> start"
     CORE_RUN_DONE = "Core run -> done"
 
-    USE_API_MODE = "Use API mode ..."
-    NO_API_MODE = "No API mode ..."
+    TAC_MODE = "TAC mode ..."
 
     GET_FOLLOWING_LIST_START = "Getting following list -> start"
     GET_FOLLOWING_LIST_DONE = "Getting following list-> done"

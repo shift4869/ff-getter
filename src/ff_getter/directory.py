@@ -152,6 +152,7 @@ class Directory:
         """結果をファイルに保存する
 
         Args:
+            target_username (str): 操作対象の username
             following_list (FollowingList): 今回取得した FollowingList
             follower_list (FollowerList): 今回取得した FollowerList
             diff_following_list (DiffFollowingList): 前回との差分を格納した DiffFollowingList
@@ -186,9 +187,7 @@ class Directory:
             difference_caption = f"difference with nothing (first run)"
 
         # テンプレートファイル読み込み
-        template_str = ""
-        with Path(self.TEMPLATE_FILE_PATH).open("r") as fin:
-            template_str = fin.read()
+        template_str = Path(self.TEMPLATE_FILE_PATH).read_text(encoding="utf8")
 
         # レンダリング
         template: Template = Template(template_str)
@@ -205,8 +204,7 @@ class Directory:
         })
 
         # ファイル保存
-        with file_path.open("w", encoding="utf-8") as fout:
-            fout.write(rendered_str)
+        file_path.write_text(rendered_str, encoding="utf-8")
         return file_path
 
     def move_old_file(self, reserved_file_num: int) -> list[str] | FileExistsError:

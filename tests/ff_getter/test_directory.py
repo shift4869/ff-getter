@@ -1,5 +1,3 @@
-import datetime
-import os
 import shutil
 import sys
 import unittest
@@ -16,26 +14,36 @@ from ff_getter.value_object.user_record_list import FollowerList, FollowingList,
 
 
 class TestDirectory(unittest.TestCase):
+    def setUp(self) -> None:
+        result_directory_path = Path("./tests/ff_getter/result")
+        result_directory_path.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(result_directory_path)
+        result_directory_path.mkdir(parents=True, exist_ok=True)
+        return super().setUp()
+
+    def tearDown(self) -> None:
+        result_directory_path = Path("./tests/ff_getter/result")
+        result_directory_path.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(result_directory_path)
+        return super().tearDown()
+
     def _get_instance(self):
-        # カレントディレクトリを tests に移動させる
         directory = Directory()
-        base_path = directory.base_path / "tests"
+        base_path = Path("./tests/ff_getter")
         object.__setattr__(directory, "base_path", base_path)
-        directory.set_current()
+        object.__setattr__(directory, "RESULT_DIRECTORY", "./tests/ff_getter/result")
         return directory
 
-    def _make_sample_file(self) -> Path:
-        directory = Directory()
+    def _make_sample_file(self, date_str) -> Path:
+        directory = self._get_instance()
         template_str = ""
         template_file_path = Path(directory.TEMPLATE_FILE_PATH)
-        with template_file_path.open("r") as fin:
-            template_str = fin.read()
+        template_str = template_file_path.read_text(encoding="utf8")
 
         template: Template = Template(template_str)
-        yesterday_str = "20230317"
-        test_base_path = Path("./tests")
-        file_path = test_base_path / directory.RESULT_DIRECTORY / f"{directory.FILE_NAME_BASE}_{yesterday_str}.txt"
-        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path: Path = Path(directory.RESULT_DIRECTORY) / f"{directory.FILE_NAME_BASE}_{date_str}.txt"
+
+        last_file_path = directory.get_last_file_path()
 
         target_username = "dummy_target_username"
         user_record_1 = UserRecord.create(1, "ユーザー1", "screen_name_1")
@@ -58,10 +66,14 @@ class TestDirectory(unittest.TestCase):
         follower_num = len(t_follower_list)
         following_caption = f"following {following_num}"
         follower_caption = f"follower {follower_num}"
-        difference_caption = f"difference with nothing (first run)"
+        difference_caption = ""
+        if last_file_path:
+            difference_caption = f"difference with {last_file_path.name}"
+        else:
+            difference_caption = f"difference with nothing (first run)"
 
         rendered_str = template.render({
-            "today_str": yesterday_str,
+            "today_str": date_str,
             "target_username": target_username,
             "following_caption": following_caption,
             "following_list": t_following_list,
@@ -71,13 +83,12 @@ class TestDirectory(unittest.TestCase):
             "diff_following_list": t_diff_following_list,
             "diff_follower_list": t_diff_follower_list,
         })
-        with file_path.open("w", encoding="utf-8") as fout:
-            fout.write(rendered_str)
+        file_path.write_text(rendered_str, encoding="utf8")
         return file_path
 
-    def test_Directory(self):
+    def test_init(self):
         directory = Directory()
-        expect = Path(os.path.dirname(__file__)).parent.parent
+        expect = Path().resolve()
         self.assertEqual(expect, directory.base_path)
 
         FILE_NAME_BASE = "ff_list"
@@ -89,18 +100,10 @@ class TestDirectory(unittest.TestCase):
         self.assertEqual(BACKUP_DIRECTORY, Directory.BACKUP_DIRECTORY)
         self.assertEqual(TEMPLATE_FILE_PATH, Directory.TEMPLATE_FILE_PATH)
 
-    def test_set_current(self):
-        directory = Directory()
-        expect = Path(os.path.dirname(__file__)).parent.parent
-        self.assertEqual(expect, directory.set_current())
-
     def test_get_last_file_path(self):
         with freeze_time("2023-03-18 00:00:00"):
             directory = self._get_instance()
             result_directory_path = Path(directory.RESULT_DIRECTORY)
-            if result_directory_path.is_dir():
-                shutil.rmtree(result_directory_path)
-            result_directory_path.mkdir(parents=True, exist_ok=True)
 
             # 前回実行ファイルが無かった = 初回実行
             actual = directory.get_last_file_path()
@@ -128,45 +131,39 @@ class TestDirectory(unittest.TestCase):
             actual = directory.get_last_file_path()
             self.assertIsNone(actual)
 
-            # 後始末
-            if result_directory_path.is_dir():
-                shutil.rmtree(result_directory_path)
-
     def test_get_last_following(self):
-        self._make_sample_file()
         directory = self._get_instance()
+        # result が空の場合
         actual = directory.get_last_following()
+        expect = FollowingList.create()
+        self.assertEqual(expect, actual)
 
+        # result に前回実行ファイルが存在する場合
+        self._make_sample_file("20230317")
+        actual = directory.get_last_following()
         user_record_1 = Following.create(1, "ユーザー1", "screen_name_1")
         user_record_2 = Following.create(2, "ユーザー2", "screen_name_2")
         expect = FollowingList.create([user_record_1, user_record_2])
         self.assertEqual(expect, actual)
 
-        # 後始末
-        result_directory_path = Path(directory.RESULT_DIRECTORY)
-        if result_directory_path.is_dir():
-            shutil.rmtree(result_directory_path)
-
     def test_get_last_follower(self):
-        self._make_sample_file()
         directory = self._get_instance()
+        # result が空の場合
         actual = directory.get_last_follower()
+        expect = FollowerList.create()
+        self.assertEqual(expect, actual)
 
+        # result に前回実行ファイルが存在する場合
+        self._make_sample_file("20230317")
+        actual = directory.get_last_follower()
         user_record_2 = Follower.create(2, "ユーザー2", "screen_name_2")
         user_record_3 = Follower.create(3, "ユーザー3", "screen_name_3")
         expect = FollowerList.create([user_record_2, user_record_3])
         self.assertEqual(expect, actual)
 
-        # 後始末
-        result_directory_path = Path(directory.RESULT_DIRECTORY)
-        if result_directory_path.is_dir():
-            shutil.rmtree(result_directory_path)
-
     def test_save_file(self):
         with freeze_time("2023-03-18 00:00:00"):
-            directory = Directory()
-            object.__setattr__(directory, "RESULT_DIRECTORY", "./tests/result")
-            Path(directory.RESULT_DIRECTORY).mkdir(parents=True, exist_ok=True)
+            directory = self._get_instance()
 
             target_username = "dummy_target_username"
             following_1 = Following.create(1, "ユーザー1", "screen_name_1")
@@ -183,27 +180,35 @@ class TestDirectory(unittest.TestCase):
 
             today_str = "20230318"
             yesterday_str = "20230317"
-            actual = directory.save_file(
+
+            # result が空の場合
+            expect: Path = self._make_sample_file(today_str)
+            expect_str: str = expect.read_text(encoding="utf8")
+            expect.unlink(missing_ok=True)
+
+            actual: Path = directory.save_file(
                 target_username, following_list, follower_list, diff_following_list, diff_follower_list
             )
-            expect = self._make_sample_file()
-            expect_str = str(expect.absolute()).replace(yesterday_str, today_str)  # 日付部分の差異は吸収
-            self.assertEqual(expect_str, str(actual.absolute()))
+            self.assertEqual(str(expect.absolute()), str(actual.absolute()))
 
-            file_path = Path(directory.RESULT_DIRECTORY) / f"{directory.FILE_NAME_BASE}_{today_str}.txt"
-            with file_path.open("r") as fin:
-                actual = fin.read()
+            file_path: Path = Path(directory.RESULT_DIRECTORY) / f"{directory.FILE_NAME_BASE}_{today_str}.txt"
+            actual_str: str = file_path.read_text(encoding="utf8")
+            self.assertEqual(expect_str, actual_str)
 
-            file_path = Path(directory.RESULT_DIRECTORY) / f"{directory.FILE_NAME_BASE}_{yesterday_str}.txt"
-            with file_path.open("r") as fin:
-                expect = fin.read()
-            expect = expect.replace(yesterday_str, today_str)  # 日付部分の差異は吸収
-            self.assertEqual(expect, actual)
+            # result に前回実行ファイルが存在する場合
+            self._make_sample_file(yesterday_str)
+            expect: Path = self._make_sample_file(today_str)
+            expect_str: str = expect.read_text(encoding="utf8")
+            expect.unlink(missing_ok=True)
 
-            # 後始末
-            result_directory_path = Path(directory.RESULT_DIRECTORY)
-            if result_directory_path.is_dir():
-                shutil.rmtree(result_directory_path)
+            actual: Path = directory.save_file(
+                target_username, following_list, follower_list, diff_following_list, diff_follower_list
+            )
+            self.assertEqual(str(expect.absolute()), str(actual.absolute()))
+
+            file_path: Path = Path(directory.RESULT_DIRECTORY) / f"{directory.FILE_NAME_BASE}_{today_str}.txt"
+            actual_str: str = file_path.read_text(encoding="utf8")
+            self.assertEqual(expect_str, actual_str)
 
 
 if __name__ == "__main__":

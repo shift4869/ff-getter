@@ -5,7 +5,7 @@ from pathlib import Path
 import orjson
 from twitter.scraper import Scraper
 
-from ff_getter.util import FF_Type, find_values
+from ff_getter.util import FFtype, find_values
 from ff_getter.value_object.user_name import UserName
 from ff_getter.value_object.user_record import Follower, Following
 from ff_getter.value_object.user_record_list import FollowerList, FollowingList
@@ -19,10 +19,10 @@ class FetcherBase:
     auth_token: str
     target_screen_name: UserName
     target_id: int
-    ff_type: FF_Type
+    ff_type: FFtype
     is_debug: bool
 
-    def __init__(self, config: dict, ff_type: FF_Type, is_debug: False = False) -> None:
+    def __init__(self, config: dict, ff_type: FFtype, is_debug: False = False) -> None:
         """FetcherBase
 
         Args:
@@ -48,7 +48,7 @@ class FetcherBase:
             case _:
                 raise ValueError("config dict is invalid.")
 
-        if not (isinstance(ff_type, FF_Type) and ff_type in [FF_Type.following, FF_Type.follower]):
+        if not (isinstance(ff_type, FFtype) and ff_type in [FFtype.following, FFtype.follower]):
             raise ValueError("ff_type must be in [FF_Type.following, FF_Type.follower].")
         if not isinstance(is_debug, bool):
             raise ValueError("is_debug must be bool.")
@@ -88,9 +88,9 @@ class FetcherBase:
                 fetched_contents.append(json_dict)
         else:
             scraper = Scraper(cookies={"ct0": self.ct0, "auth_token": self.auth_token}, pbar=False)
-            if self.ff_type == FF_Type.following:
+            if self.ff_type == FFtype.following:
                 fetched_contents = scraper.following([self.target_id])
-            elif self.ff_type == FF_Type.follower:
+            elif self.ff_type == FFtype.follower:
                 fetched_contents = scraper.followers([self.target_id])
         logger.info(f"Getting {self.ff_type.value} fetched -> done")
 
@@ -145,10 +145,10 @@ class FetcherBase:
             return []
 
         ToConvertDataClass: type[Following] | type[Follower] = (
-            Following if self.ff_type == FF_Type.following else Follower
+            Following if self.ff_type == FFtype.following else Follower
         )
         ToConvertClass: type[FollowingList] | type[FollowerList] = (
-            FollowingList if self.ff_type == FF_Type.following else FollowerList
+            FollowingList if self.ff_type == FFtype.following else FollowerList
         )
 
         # 辞書パース
@@ -186,12 +186,12 @@ class FetcherBase:
 
 class FollowingFetcher(FetcherBase):
     def __init__(self, config: dict, is_debug: False = False) -> None:
-        super().__init__(config, FF_Type.following, is_debug)
+        super().__init__(config, FFtype.following, is_debug)
 
 
 class FollowerFetcher(FetcherBase):
     def __init__(self, config: dict, is_debug: False = False) -> None:
-        super().__init__(config, FF_Type.follower, is_debug)
+        super().__init__(config, FFtype.follower, is_debug)
 
 
 if __name__ == "__main__":

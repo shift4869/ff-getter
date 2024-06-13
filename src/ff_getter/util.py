@@ -7,7 +7,7 @@ class Result(Enum):
     failed = auto()
 
 
-class FF_Type(Enum):
+class FFtype(Enum):
     following = "following"
     follower = "follower"
 

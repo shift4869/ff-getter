@@ -222,7 +222,7 @@ class Directory:
         Returns:
             moved_list (list[str]): 移動させた後のファイルパスリスト
         """
-        if reserved_file_num < 0:
+        if not isinstance(reserved_file_num, int) or reserved_file_num < 0:
             return []
 
         result_path = Path(self.RESULT_DIRECTORY)

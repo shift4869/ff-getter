@@ -14,6 +14,16 @@ class User:
     screen_name: str
     protected: bool = False
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.rest_id, str):
+            raise ValueError("rest_id must be str.")
+        if not isinstance(self.name, str):
+            raise ValueError("name must be str.")
+        if not isinstance(self.screen_name, str):
+            raise ValueError("screen_name must be str.")
+        if not isinstance(self.protected, bool):
+            raise ValueError("protected must be bool.")
+
     def __repr__(self) -> str:
         return f"rest_id={self.rest_id}, name={self.name}, screen_name={self.screen_name}, protected={self.protected}"
 

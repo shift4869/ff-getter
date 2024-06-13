@@ -80,7 +80,7 @@ class FetcherBase:
         fetched_contents: list[dict] = []
         if self.is_debug:
             # キャッシュから読み込み
-            cache_file_paths = base_path.glob("**/*")
+            cache_file_paths = list(base_path.glob("**/*"))
             if not cache_file_paths:
                 raise ValueError(f"cache file not found, {str(base_path.resolve())}.")
             for cache_file_path in cache_file_paths:
@@ -112,7 +112,7 @@ class FetcherBase:
     def interpret_json(self, json_dict: dict) -> dict:
         """辞書構成をたどる"""
         if not isinstance(json_dict, dict):
-            raise TypeError("argument tweet is not dict.")
+            return {}
 
         match json_dict:
             case {

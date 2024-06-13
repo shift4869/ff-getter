@@ -3,7 +3,6 @@ import configparser
 import datetime
 import subprocess
 from dataclasses import dataclass
-from enum import Enum, auto
 from logging import INFO, getLogger
 from pathlib import Path
 from typing import ClassVar
@@ -129,15 +128,12 @@ class Core:
             done_msg += f"follow num : {len(following_list)} , "
             done_msg += f"follower num : {len(follower_list)}\n"
 
-            try:
-                is_notify = self.config["notification"]["is_notify"]
-                if is_notify:
-                    notification.notify(
-                        title="ffgetter",
-                        message=done_msg,
-                    )
-            except Exception:
-                logger.info("Notification failed.")
+            is_notify = self.config["notification"]["is_notify"]
+            if is_notify:
+                notification.notify(
+                    title="ffgetter",
+                    message=done_msg,
+                )
 
             logger.info("")
             logger.info(done_msg)

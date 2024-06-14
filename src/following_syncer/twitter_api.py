@@ -7,6 +7,7 @@ from httpx import Response
 from twitter.account import Account
 from twitter.scraper import Scraper
 from twitter.util import get_headers
+from twitter.constants import Operation
 
 from following_syncer.util import find_values
 
@@ -97,11 +98,7 @@ class TwitterAPI:
             # min_id が指定されている場合
             if min_id > -1:
                 # 現在の id_str を取得して min_id と一致していたら取得を打ち切る
-                tweet_ids = []
-                try:
-                    tweet_ids = find_values(data_dict, "rest_id")
-                except Exception:
-                    continue
+                tweet_ids = find_values(data_dict, "rest_id")
                 if str(min_id) in tweet_ids:
                     break
 
@@ -136,11 +133,7 @@ class TwitterAPI:
             # min_id が指定されている場合
             if min_id > -1:
                 # 現在の id_str を取得して min_id と一致していたら取得を打ち切る
-                tweet_ids = []
-                try:
-                    tweet_ids = find_values(data_dict, "rest_id")
-                except Exception:
-                    continue
+                tweet_ids = find_values(data_dict, "rest_id")
                 if str(min_id) in tweet_ids:
                     break
 
@@ -195,7 +188,7 @@ class TwitterAPI:
     def get_list_member(self, list_id: str) -> list[dict]:
         logger.info(f"GET list member -> start")
         result = []
-        ope = {"listId": str}, "vA952kfgGw6hh8KatWnbqw", "ListMembers"
+        ope = {"listId": str}, Operation.ListMembers[0], Operation.ListMembers[1]
         response = self.scraper._run(ope, [str(list_id)])
         result = find_values(response, "user_results")
         logger.info(f"GET list member -> done")

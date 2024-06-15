@@ -11,6 +11,11 @@ class Result(Enum):
     success = auto()
 
 
+class AccountType(Enum):
+    master = "master"
+    slave = "slave"
+
+
 def find_values(
     obj: Any,
     key: str,

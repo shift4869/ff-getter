@@ -5,9 +5,9 @@ from pathlib import Path
 
 import orjson
 
-from following_syncer.account import Account, AccountType
+from following_syncer.account import Account
 from following_syncer.user import User
-from following_syncer.util import Result
+from following_syncer.util import AccountType, Result
 
 logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
 for name in logging.root.manager.loggerDict:
@@ -50,7 +50,7 @@ class FollowingSyncer:
             Account: master のアカウント情報
         """
         logger.info("Master account create -> start")
-        result = Account.create(self.config_dict["master"], AccountType.MASTER, self.is_dry_run)
+        result = Account.create(self.config_dict["master"], AccountType.master, self.is_dry_run)
         screen_name = self.config_dict["master"]["account"]["screen_name"]
         logger.info(f"\t{screen_name} account created.")
         logger.info("Master account create -> done")
@@ -66,7 +66,7 @@ class FollowingSyncer:
         result = []
         slave_account_dict = self.config_dict["slave"]["account_list"]
         for account_dict in slave_account_dict:
-            result.append(Account.create(account_dict, AccountType.SLAVE, self.is_dry_run))
+            result.append(Account.create(account_dict, AccountType.slave, self.is_dry_run))
             screen_name = account_dict["account"]["screen_name"]
             logger.info(f"\t{screen_name} account created.")
         logger.info(f"Num of slave = {len(result)}")

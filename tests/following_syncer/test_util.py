@@ -4,13 +4,17 @@ from pathlib import Path
 
 import orjson
 
-from following_syncer.util import Result, find_values
+from following_syncer.util import AccountType, Result, find_values
 
 
 class TestUtil(unittest.TestCase):
     def test_Result(self):
         self.assertTrue(hasattr(Result, "success"))
         self.assertTrue(hasattr(Result, "failed"))
+
+    def test_AccountType(self):
+        self.assertEqual("master", AccountType.master.value)
+        self.assertEqual("slave", AccountType.slave.value)
 
     def test_find_values(self):
         cache_filepath: Path = Path("./tests/following_syncer/cache/find_values_sample.json")

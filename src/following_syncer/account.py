@@ -1,4 +1,3 @@
-from enum import Enum
 from logging import INFO, getLogger
 from pathlib import Path
 from typing import Self
@@ -7,15 +6,10 @@ import orjson
 
 from following_syncer.twitter_api import TwitterAPI
 from following_syncer.user import FollowingUser, ListUser
-from following_syncer.util import find_values
+from following_syncer.util import AccountType, find_values
 
 logger = getLogger(__name__)
 logger.setLevel(INFO)
-
-
-class AccountType(Enum):
-    MASTER = "master"
-    SLAVE = "slave"
 
 
 class Account:
@@ -105,4 +99,4 @@ if __name__ == "__main__":
     )
     arg_parser.add_argument("--dry-run", action="store_true")
 
-    account = Account(config_dict["master"], AccountType.MASTER, True)
+    account = Account(config_dict["master"], AccountType.master, True)

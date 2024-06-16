@@ -1,5 +1,6 @@
-# FFGetter
+# ff-getter
 
+![Coverage reports](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/shift4869/ad61760f15c4a67a5c421cf479e3c7e7/raw/03_ff-getter.json)
 
 ## 概要
 自分のツイッターアカウントに紐づくAPIトークンを通して、  
@@ -32,38 +33,17 @@
 ## 使い方
 1. このリポジトリをDL
     - 右上の「Clone or download」->「Download ZIP」からDLして解凍  
-1.  `ff_getter.py` から見て `./config/` ディレクトリ内に、以下を参考にして `config.ini` を作成する  
-    - 自分のtwitterアカウントのセッション情報を設定する（必須）  
-    - 実行終了時にリプライを送る対象の `screen_name` を記載（任意）  
-    ```
-    # twitterセッション情報
-    [twitter_api_client]
-    ct0                 = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    auth_token          = xxxxxxxxxxxxxxxxxxxxxxxxxxx
-    target_screen_name  = {screen_name exclude @}
-    target_id           = 00000000
-
-    # 実行後に結果のリプライを送るかどうか
-    [notification]
-    is_notify = False
-    reply_to_user_name = {screen_name exclude @ or empty}
-
-    # 実行後に出力txtを開くかどうか
-    [after_open]
-    is_after_open = True
-
-    # 古いファイルを移動させるかどうか
-    [move_old_file]
-    is_move_old_file = True
-    reserved_file_num = 10
-    ```
+1.  `./tests/config/` ディレクトリ内のすべてのファイルを `./config/` ディレクトリ内にコピー   
+1.  `./config/dummy_*` それぞれのファイル名から `dummy_` を削除する   
+1.  ファイルの中身を編集する   
+    -  `dummy` が含まれる項目に自分のtwitterアカウントのセッション情報を設定する（必須）  
 1. `main.py` を実行する
     ```
     python ./src/ff_getter/main.py
     ```
     有効なオプションは `python ./src/ff_getter/main.py -h` で確認できる  
     configファイルの設定よりオプションでの指定の方が優先される  
-1. 出力された `./result/ff_list_{yyyymmdd}.txt` を確認する
+1. 出力された `./result/ff_list_{yyyymmdd}.txt` を確認する  
 
 
 ## License/Author

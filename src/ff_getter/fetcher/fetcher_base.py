@@ -26,7 +26,7 @@ class FetcherBase:
         """FetcherBase
 
         Args:
-            config (dict): config.json から取得した設定辞書
+            config (dict): ff_getter_config.json から取得した設定辞書
             ff_type (FF_Type): "following", "follower" のどちらか
             is_debug (False, optional): デバッグモードかどうか
 
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     import pprint
 
     logging.config.fileConfig("./log/logging.ini", disable_existing_loggers=False)
-    CONFIG_FILE_NAME = "./config/config.json"
+    CONFIG_FILE_NAME = "./config/ff_getter_config.json"
     config = orjson.loads(Path(CONFIG_FILE_NAME).read_bytes())
 
     fetcher = FollowingFetcher(config, is_debug=True)

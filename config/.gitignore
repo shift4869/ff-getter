@@ -5,4 +5,6 @@
 *redirect*
 *.json*
 *.ini*
+!dummy_ff_getter_config.json
+!dummy_following_syncer_config.json
 

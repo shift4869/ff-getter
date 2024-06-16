@@ -23,7 +23,7 @@ def main() -> None:
     parser = None
     try:
         parser = argparse.ArgumentParser(
-            description="Following/Follower get.", epilog="require config file for ./config/config.json"
+            description="Following/Follower get.", epilog="require config file for ./config/ff_getter_config.json"
         )
         parser.add_argument(
             "--disable-notification",

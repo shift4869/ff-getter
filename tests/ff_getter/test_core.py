@@ -15,7 +15,7 @@ from ff_getter.core import Core, Result
 
 class TestCore(unittest.TestCase):
     def setUp(self) -> None:
-        self.config_file_path = Path("./tests/config/dummy_ff_getter_config.json")
+        self.config_file_path = Path("./config/dummy_ff_getter_config.json")
         mock_config_file_path = self.enterContext(patch.object(Core, "CONFIG_FILE_PATH", self.config_file_path))
         warnings.simplefilter("ignore", ResourceWarning)
 

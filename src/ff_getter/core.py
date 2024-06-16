@@ -36,7 +36,7 @@ class Core:
     parser: argparse.ArgumentParser | None = None
     config: ClassVar[configparser.ConfigParser]
 
-    CONFIG_FILE_PATH = "./config/config.json"
+    CONFIG_FILE_PATH = "./config/ff_getter_config.json"
 
     def __post_init__(self) -> None:
         """初期化後処理"""

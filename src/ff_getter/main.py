@@ -16,7 +16,8 @@ logger.setLevel(INFO)
 
 prevent_multiple_run_path = Path(__file__).parent / "./prevent_multiple_run"
 
-if __name__ == "__main__":
+
+def main() -> None:
     logger.info(Msg.HORIZONTAL_LINE())
     logger.info(Msg.APPLICATION_START())
     parser = None
@@ -57,3 +58,7 @@ if __name__ == "__main__":
         prevent_multiple_run_path.unlink(missing_ok=True)
     logger.info(Msg.APPLICATION_DONE())
     logger.info(Msg.HORIZONTAL_LINE())
+
+
+if __name__ == "__main__":
+    main()

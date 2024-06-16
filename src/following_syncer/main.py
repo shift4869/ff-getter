@@ -26,8 +26,6 @@ class FollowingSyncer:
     slave_list: list[Account]
     is_dry_run: bool
 
-    CACHE_PATH = Path(__file__).parent / "cache"
-
     def __init__(self, config_json_path: Path, arg_parser: argparse.ArgumentParser) -> None:
         """syncer初期化
 
@@ -85,25 +83,25 @@ class FollowingSyncer:
         Returns:
             tuple[list[User], list[User]]: p - q, q - p
         """
-        p_rest_ids = [r.rest_id for r in p]
-        q_rest_ids = [r.rest_id for r in q]
-        p_set = set([r for r in p_rest_ids])
-        q_set = set([r for r in q_rest_ids])
+        p_rest_ids: list[str] = [r.rest_id for r in p]
+        q_rest_ids: list[str] = [r.rest_id for r in q]
+        p_set: set[str] = set([r for r in p_rest_ids])
+        q_set: set[str] = set([r for r in q_rest_ids])
 
-        all_set = p_set | q_set
-        to_be_added = []
-        to_be_removed = []
+        all_set: set[str] = p_set | q_set
+        to_be_added: list[User] = []
+        to_be_removed: list[User] = []
         for ele in all_set:
             if (ele in p_set) and (ele not in q_set):
                 # p - q
                 user = [r for r in p if r.rest_id == ele]
-                if len(user) == 1:
-                    to_be_added.append(user[0])
+                to_be_added.append(user[0])
             if (ele not in p_set) and (ele in q_set):
                 # q - p
                 user = [r for r in q if r.rest_id == ele]
-                if len(user) == 1:
-                    to_be_removed.append(user[0])
+                to_be_removed.append(user[0])
+        to_be_added.sort(key=lambda r: r.rest_id)
+        to_be_removed.sort(key=lambda r: r.rest_id)
         return to_be_added, to_be_removed
 
     def _exclude_account(self, user_list: list[User]) -> list[User]:
@@ -115,6 +113,11 @@ class FollowingSyncer:
         Returns:
             list[User]: 除外後のリスト
         """
+        if not isinstance(user_list, list):
+            return []
+        if not all([isinstance(user, User) for user in user_list]):
+            return []
+
         # 今回操作しているアカウント関連は除外
         exclude_screen_names = [self.master.screen_name]
         exclude_screen_names.extend([r.screen_name for r in self.slave_list])
@@ -246,7 +249,6 @@ class FollowingSyncer:
                     logger.info(f"\t{user}")
                 except Exception as e:
                     logger.error(f"{e}")
-
             logger.info(f"Remove to_be_removed user -> {dry_run_log}done")
 
             self.config_dict["slave"]["account_list"][i]["following"]["to_be_add"] = [

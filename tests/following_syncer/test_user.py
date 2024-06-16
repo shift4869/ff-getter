@@ -1,7 +1,7 @@
 import sys
 import unittest
 
-from following_syncer.user import User
+from following_syncer.user import FollowingUser, ListUser, User
 
 
 class TestUser(unittest.TestCase):
@@ -33,6 +33,26 @@ class TestUser(unittest.TestCase):
             },
             instance.to_dict(),
         )
+
+    def test_FollowingUser(self):
+        user = User("12345678", "test_user🎉", "test_user")
+        instance = FollowingUser.create(user)
+        self.assertEqual("12345678", instance.rest_id)
+        self.assertEqual("test_user🎉", instance.name)
+        self.assertEqual("test_user", instance.screen_name)
+        self.assertFalse(instance.protected)
+        repr_str = "rest_id=12345678, name=test_user🎉, screen_name=test_user, protected=False"
+        self.assertEqual(repr_str, repr(instance))
+
+    def test_ListUser(self):
+        user = User("12345678", "test_user🎉", "test_user")
+        instance = ListUser.create(user)
+        self.assertEqual("12345678", instance.rest_id)
+        self.assertEqual("test_user🎉", instance.name)
+        self.assertEqual("test_user", instance.screen_name)
+        self.assertFalse(instance.protected)
+        repr_str = "rest_id=12345678, name=test_user🎉, screen_name=test_user, protected=False"
+        self.assertEqual(repr_str, repr(instance))
 
 
 if __name__ == "__main__":

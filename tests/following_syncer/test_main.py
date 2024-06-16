@@ -29,7 +29,7 @@ class TestFollowingSyncer(unittest.TestCase):
         self.mock_load_master.return_value = self._return_load_master()
         self.mock_load_slave_list.return_value = self._return_load_slave_list()
 
-        config_json_path = Path("./config/following_syncer_config.json")
+        config_json_path = Path("./tests/config/dummy_following_syncer_config.json")
         instance = FollowingSyncer(config_json_path, mock_argparse)
         instance.config_json_path = self.cache_path
         return instance
@@ -75,7 +75,7 @@ class TestFollowingSyncer(unittest.TestCase):
         mock_load_master = self.enterContext(patch("following_syncer.main.FollowingSyncer._load_master"))
         mock_load_slave_list = self.enterContext(patch("following_syncer.main.FollowingSyncer._load_slave_list"))
         mock_argparse = self._return_argparse()
-        config_json_path = Path("./config/following_syncer_config.json")
+        config_json_path = Path("./tests/config/dummy_following_syncer_config.json")
         config_dict = orjson.loads(config_json_path.read_bytes())
 
         instance = FollowingSyncer(config_json_path, mock_argparse)
@@ -92,7 +92,7 @@ class TestFollowingSyncer(unittest.TestCase):
         mock_account = self.enterContext(patch("following_syncer.main.Account"))
         mock_load_slave_list = self.enterContext(patch("following_syncer.main.FollowingSyncer._load_slave_list"))
         mock_argparse = self._return_argparse()
-        config_json_path = Path("./config/following_syncer_config.json")
+        config_json_path = Path("./tests/config/dummy_following_syncer_config.json")
         config_dict = orjson.loads(config_json_path.read_bytes())
 
         instance = FollowingSyncer(config_json_path, mock_argparse)
@@ -104,7 +104,7 @@ class TestFollowingSyncer(unittest.TestCase):
         mock_account = self.enterContext(patch("following_syncer.main.Account"))
         mock_load_master = self.enterContext(patch("following_syncer.main.FollowingSyncer._load_master"))
         mock_argparse = self._return_argparse()
-        config_json_path = Path("./config/following_syncer_config.json")
+        config_json_path = Path("./tests/config/dummy_following_syncer_config.json")
         config_dict = orjson.loads(config_json_path.read_bytes())
         slave_account_dict = config_dict["slave"]["account_list"]
 

@@ -1,0 +1,18 @@
+{
+    "twitter_api_client": {
+        "ct0": "dummy_ct0",
+        "auth_token": "dummy_auth_token",
+        "target_screen_name": "dummy_target_screen_name",
+        "target_id": "dummy_target_id"
+    },
+    "notification": {
+        "is_notify": true
+    },
+    "after_open": {
+        "is_after_open": true
+    },
+    "move_old_file": {
+        "is_move_old_file": true,
+        "reserved_file_num": 10
+    }
+}

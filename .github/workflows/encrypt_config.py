@@ -5,7 +5,7 @@ from pathlib import Path
 from cryptography.fernet import Fernet
 
 
-def Encrypt(path: str, key: str = "") -> int:
+def encrypt(path: str, key: str = "") -> int:
     if key == "":
         key = Fernet.generate_key()
     else:
@@ -32,7 +32,7 @@ def Encrypt(path: str, key: str = "") -> int:
     return 0
 
 
-def Decrypt(path: str, key: str):
+def decrypt(path: str, key: str):
     if path == "":
         return -1
     sd = Path(path)
@@ -63,8 +63,8 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     if args.type == "encrypt":
-        Encrypt(args.path, args.key)
+        encrypt(args.path, args.key)
     elif args.type == "decrypt":
-        Decrypt(args.path, args.key)
+        decrypt(args.path, args.key)
     else:
         arg_parser.print_help()

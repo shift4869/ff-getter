@@ -1,0 +1,53 @@
+{
+  "master": {
+    "account": {
+      "ct0": "dummy_master_ct0",
+      "auth_token": "dummy_master_auth_token",
+      "screen_name": "dummy_master_screen_name",
+      "list_id": "dummy_master_list_id",
+      "diff_solve_each_num": 10
+    },
+    "list": {
+      "to_be_add": [],
+      "to_be_removed": []
+    }
+  },
+  "slave": {
+    "account_list": [
+      {
+        "account": {
+          "ct0": "dummy_slave1_ct0",
+          "auth_token": "dummy_slave1_auth_token",
+          "screen_name": "dummy_slave1_screen_name",
+          "list_id": "dummy_slave1_list_id",
+          "diff_solve_each_num": 10
+        },
+        "following": {
+          "to_be_add": [],
+          "to_be_removed": []
+        },
+        "list": {
+          "to_be_add": [],
+          "to_be_removed": []
+        }
+      },
+      {
+        "account": {
+          "ct0": "dummy_slave2_ct0",
+          "auth_token": "dummy_slave2_auth_token",
+          "screen_name": "dummy_slave2_screen_name",
+          "list_id": "dummy_slave2_list_id",
+          "diff_solve_each_num": 10
+        },
+        "following": {
+          "to_be_add": [],
+          "to_be_removed": []
+        },
+        "list": {
+          "to_be_add": [],
+          "to_be_removed": []
+        }
+      }
+    ]
+  }
+}

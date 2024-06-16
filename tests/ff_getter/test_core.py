@@ -15,11 +15,13 @@ from ff_getter.core import Core, Result
 
 class TestCore(unittest.TestCase):
     def setUp(self) -> None:
+        self.config_file_path = Path("./tests/config/dummy_ff_getter_config.json")
+        mock_config_file_path = self.enterContext(patch.object(Core, "CONFIG_FILE_PATH", self.config_file_path))
         warnings.simplefilter("ignore", ResourceWarning)
 
     def test_init(self):
         mock_logger = self.enterContext(patch("ff_getter.core.logger"))
-        config = orjson.loads(Path("./config/config.json").read_bytes())
+        config = orjson.loads(self.config_file_path.read_bytes())
 
         core = Core()
         self.assertIsNone(core.parser)

@@ -14,8 +14,7 @@ on:
     branches: [ master, develop, feature/ci, feature/test ]
   schedule:
     # min hour(UTC) day month week[0(sun)-6(sat)]
-    # */1 17:00 , run
-    - cron:  "0 8 1 * *"
+    - cron:  "0 17 1 * *"
 
 jobs:
   build:
@@ -26,7 +25,8 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout branch
+      uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -38,16 +38,16 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r ./requirements.lock
 
-    - name: Make config file
-      run: |
-        python EncryptConfig.py --type="decrypt" --path="./encrypt_config_ci.ini" --key="${{ secrets.SECRET_KEY }}"
-      working-directory: ./.github\workflows
+    # - name: Make config file
+    #   run: |
+    #     python encrypt_config.py --type="decrypt" --path="./encrypt_config_ci.ini" --key="${{ secrets.SECRET_KEY }}"
+    #   working-directory: ./.github\workflows
 
-    - name: Copy config file
-      run: |
-        copy decrypt.ini ../../config/config.ini
-        cd ../../config/
-      working-directory: ./.github\workflows
+    # - name: Copy config file
+    #   run: |
+    #     copy decrypt.ini ../../config/config.ini
+    #     cd ../../config/
+    #   working-directory: ./.github\workflows
 
     - name: Test with unittest
       run: |

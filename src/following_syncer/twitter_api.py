@@ -4,10 +4,11 @@ from logging import INFO, getLogger
 from pathlib import Path
 
 from httpx import Response
+from tweeterpy import TweeterPy
 from twitter.account import Account
+from twitter.constants import Operation
 from twitter.scraper import Scraper
 from twitter.util import get_headers
-from twitter.constants import Operation
 
 from following_syncer.util import find_values
 
@@ -31,6 +32,16 @@ class TwitterAPI:
         self.ct0 = ct0
         self.auth_token = auth_token
         self.target_screen_name = target_screen_name
+
+        self.twitter = TweeterPy(log_level="WARNING")
+        self.session_path.parent.mkdir(parents=True, exist_ok=True)
+        self.twitter.generate_session(auth_token=self.auth_token)
+        self.twitter.save_session(path=Path(self.session_path).parent)
+
+    @property
+    def session_path(self) -> Path:
+        """セッションファイルパス"""
+        return Path(__file__).parent / f"cache/session/{self.target_screen_name}.pkl"
 
     @property
     def scraper(self) -> Scraper:
@@ -168,8 +179,10 @@ class TwitterAPI:
 
     def get_follower_list(self) -> list[dict]:
         logger.info(f"GET follower list -> start")
-        followers_users = self.scraper.followers([self.target_id])
-        result = find_values(followers_users, "user_results")
+        # followers_users = self.scraper.followers([self.target_id])
+        # result = find_values(followers_users, "user_results")
+        followers_users = self.twitter.get_friends(self.target_id, True, False)
+        result = find_values(followers_users, "data", True)
         logger.info(f"GET follower list -> done")
         return result
 
@@ -283,15 +296,18 @@ if __name__ == "__main__":
 
     import configparser
 
+    import orjson
+
     config = configparser.ConfigParser()
-    CONFIG_FILE_NAME = "./config/config.ini"
-    if not config.read(CONFIG_FILE_NAME, encoding="utf8"):
+    CONFIG_FILE_NAME = "./config/following_syncer_config.json"
+    config = orjson.loads(Path(CONFIG_FILE_NAME).read_bytes())
+    if not config:
         raise IOError
 
-    ct0 = config["twitter_api_client"]["ct0"]
-    auth_token = config["twitter_api_client"]["auth_token"]
-    target_screen_name = config["twitter_api_client"]["target_screen_name"]
-    twitter = TwitterAPI(ct0, auth_token, target_screen_name)
+    ct0 = config["master"]["account"]["ct0"]
+    auth_token = config["master"]["account"]["auth_token"]
+    screen_name = config["master"]["account"]["screen_name"]
+    twitter = TwitterAPI(ct0, auth_token, screen_name)
     result: dict | list[dict] = []
 
     def save_response(result_data):
@@ -347,10 +363,10 @@ if __name__ == "__main__":
     #     screen_name = legacy.get("screen_name", "")
     #     pprint.pprint(f"{user_id}, {user_name}, {screen_name}")
 
-    # pprint.pprint("follower 取得")
-    # result = twitter.get_follower_list()
-    # save_response(result)
-    # pprint.pprint(len(result))
+    pprint.pprint("follower 取得")
+    result = twitter.get_follower_list()
+    save_response(result)
+    pprint.pprint(len(result))
     # for user_dict in result:
     #     legacy = user_dict.get("result", {}).get("legacy", {})
     #     user_id = user_dict.get("result", {}).get("rest_id", "")
@@ -358,19 +374,19 @@ if __name__ == "__main__":
     #     screen_name = legacy.get("screen_name", "")
     #     pprint.pprint(f"{user_id}, {user_name}, {screen_name}")
 
-    pprint.pprint("ユーザー follow")
-    user = twitter.lookup_user_by_screen_name("X")
-    user_id = twitter.find_values(user, "rest_id")[0]
-    result = twitter.follow(user_id)
-    save_response(result)
-    pprint.pprint(len(result))
+    # pprint.pprint("ユーザー follow")
+    # user = twitter.lookup_user_by_screen_name(twitter.target_screen_name)
+    # user_id = find_values(user, "rest_id")[0]
+    # result = twitter.follow(user_id)
+    # save_response(result)
+    # pprint.pprint(len(result))
 
-    pprint.pprint("ユーザー unfollow")
-    user = twitter.lookup_user_by_screen_name("X")
-    user_id = twitter.find_values(user, "rest_id")[0]
-    result = twitter.remove(user_id)
-    save_response(result)
-    pprint.pprint(len(result))
+    # pprint.pprint("ユーザー unfollow")
+    # user = twitter.lookup_user_by_screen_name(twitter.target_screen_name)
+    # user_id = find_values(user, "rest_id")[0]
+    # result = twitter.remove(user_id)
+    # save_response(result)
+    # pprint.pprint(len(result))
 
     # pprint.pprint("list メンバー取得")
     # list_id = "1618833354572595200"  # v_shift9738 - following

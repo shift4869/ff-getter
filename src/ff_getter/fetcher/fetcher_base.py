@@ -3,7 +3,7 @@ from logging import INFO, getLogger
 from pathlib import Path
 
 import orjson
-from twitter.scraper import Scraper
+from tweeterpy import TweeterPy
 
 from ff_getter.util import FFtype, find_values
 from ff_getter.value_object.user_name import UserName
@@ -55,6 +55,25 @@ class FetcherBase:
 
         self.ff_type = ff_type
         self.is_debug = is_debug
+        self.config_dict = config
+        self.twitter = TweeterPy()
+        self.session_path.parent.mkdir(parents=True, exist_ok=True)
+        # if Path(self.session_path).exists():
+        #     try:
+        #         self.twitter.load_session(path=str(self.session_path))
+        #     except Exception:
+        #         self.twitter.generate_session(auth_token=self.auth_token)
+        #         self.twitter.save_session(path=Path(self.session_path).parent)
+        # else:
+        #     self.twitter.generate_session(auth_token=self.auth_token)
+        #     self.twitter.save_session(path=Path(self.session_path).parent)
+        self.twitter.generate_session(auth_token=self.auth_token)
+        self.twitter.save_session(path=Path(self.session_path).parent)
+
+    @property
+    def session_path(self) -> Path:
+        """セッションファイルパス"""
+        return Path(__file__).parent / f"cache/session/{self.target_screen_name}.pkl"
 
     @property
     def cache_path(self) -> Path:
@@ -87,22 +106,24 @@ class FetcherBase:
                 json_dict = orjson.loads(cache_file_path.read_bytes())
                 fetched_contents.append(json_dict)
         else:
-            scraper = Scraper(cookies={"ct0": self.ct0, "auth_token": self.auth_token}, pbar=False)
+            # scraper = Scraper(cookies={"ct0": self.ct0, "auth_token": self.auth_token}, pbar=False)
             if self.ff_type == FFtype.following:
-                fetched_contents = scraper.following([self.target_id])
+                # fetched_contents = scraper.following([self.target_id])
+                fetched_contents = self.twitter.get_friends(self.target_id, False, True)
             elif self.ff_type == FFtype.follower:
-                fetched_contents = scraper.followers([self.target_id])
+                # fetched_contents = scraper.followers([self.target_id])
+                fetched_contents = self.twitter.get_friends(self.target_id, True, False)
         logger.info(f"Getting {self.ff_type.value} fetched -> done")
 
         # キャッシュに保存
-        for i, content in enumerate(fetched_contents):
+        for i, content in enumerate(fetched_contents["data"]):
             Path(base_path / f"content_cache{i}.txt").write_bytes(orjson.dumps(content, option=orjson.OPT_INDENT_2))
 
         # キャッシュから読み込み
         # content_list と result はほぼ同一の内容になる
         # 違いは result は dump -> load したときに、エンコード等が吸収されていること
         result: list[dict] = []
-        for i, content in enumerate(fetched_contents):
+        for i, content in enumerate(fetched_contents["data"]):
             json_dict = orjson.loads(Path(base_path / f"content_cache{i}.txt").read_bytes())
             result.append(json_dict)
 
@@ -154,17 +175,17 @@ class FetcherBase:
         # 辞書パース
         data_list: list[Following] | list[Follower] = []
         for fetched_json in fetched_jsons:
-            entries: list[dict] = find_values(fetched_json, "entries", True)
-            for entry in entries:
-                data_dict = self.interpret_json(entry)
-                if not data_dict:
-                    continue
-                ff_data = ToConvertDataClass.create(
-                    data_dict.get("id_str", ""),
-                    data_dict.get("name", ""),
-                    data_dict.get("screen_name", ""),
-                )
-                data_list.append(ff_data)
+            # entries: list[dict] = find_values(fetched_json, "entries", True)
+            # for entry in entries:
+            data_dict = self.interpret_json(fetched_json)
+            if not data_dict:
+                continue
+            ff_data = ToConvertDataClass.create(
+                data_dict.get("id_str", ""),
+                data_dict.get("name", ""),
+                data_dict.get("screen_name", ""),
+            )
+            data_list.append(ff_data)
         if not data_list:
             # 辞書パースエラー or 1件も無かった
             return []
@@ -202,10 +223,10 @@ if __name__ == "__main__":
     CONFIG_FILE_NAME = "./config/ff_getter_config.json"
     config = orjson.loads(Path(CONFIG_FILE_NAME).read_bytes())
 
-    fetcher = FollowingFetcher(config, is_debug=True)
+    fetcher = FollowingFetcher(config, is_debug=False)
     following_list = fetcher.fetch()
     pprint.pprint(len(following_list))
 
-    fetcher = FollowerFetcher(config, is_debug=True)
+    fetcher = FollowerFetcher(config, is_debug=False)
     follower_list = fetcher.fetch()
     pprint.pprint(len(follower_list))

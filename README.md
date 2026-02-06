@@ -47,4 +47,4 @@
 
 ## License/Author
 [MIT License](https://github.com/shift4869/FFGetter/blob/master/LICENSE)  
-Copyright (c) 2022 - 2024 [shift](https://twitter.com/_shift4869)
+Copyright (c) 2022 ~ [shift](https://x.com/_shift4869)

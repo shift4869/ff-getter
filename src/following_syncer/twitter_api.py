@@ -36,7 +36,7 @@ class TwitterAPI:
         self.twitter = TweeterPy(log_level="WARNING")
         self.session_path.parent.mkdir(parents=True, exist_ok=True)
         self.twitter.generate_session(auth_token=self.auth_token)
-        self.twitter.save_session(path=Path(self.session_path).parent)
+        # self.twitter.save_session(path=Path(self.session_path).parent)
 
     @property
     def session_path(self) -> Path:

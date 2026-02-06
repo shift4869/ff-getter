@@ -142,8 +142,8 @@ class FetcherBase:
                 },
             }:
                 id_str = result["rest_id"]
-                name = result["legacy"]["name"]
-                screen_name = result["legacy"]["screen_name"]
+                name = result["core"]["name"]
+                screen_name = result["core"]["screen_name"]
                 return {
                     "id_str": id_str,
                     "name": name,

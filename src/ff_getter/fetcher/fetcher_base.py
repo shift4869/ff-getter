@@ -22,7 +22,7 @@ class FetcherBase:
     ff_type: FFtype
     is_debug: bool
 
-    def __init__(self, config: dict, ff_type: FFtype, is_debug: False = False) -> None:
+    def __init__(self, config: dict, ff_type: FFtype, is_debug: bool = False) -> None:
         """FetcherBase
 
         Args:
@@ -68,7 +68,7 @@ class FetcherBase:
         #     self.twitter.generate_session(auth_token=self.auth_token)
         #     self.twitter.save_session(path=Path(self.session_path).parent)
         self.twitter.generate_session(auth_token=self.auth_token)
-        self.twitter.save_session(path=Path(self.session_path).parent)
+        # self.twitter.save_session(path=Path(self.session_path).parent)
 
     @property
     def session_path(self) -> Path:
@@ -113,17 +113,26 @@ class FetcherBase:
             elif self.ff_type == FFtype.follower:
                 # fetched_contents = scraper.followers([self.target_id])
                 fetched_contents = self.twitter.get_friends(self.target_id, True, False)
+
+        if "data" not in fetched_contents:
+            logger.info(f"Fetching failed, fetched_contents is not contain 'data' structure -> abort")
+            logger.info(f"Getting {self.ff_type.value} fetched -> abort")
+            logger.info(f"Fetched {self.ff_type.value} by TAC -> abort")
+            return []
+
+        fetched_data = fetched_contents["data"]
+        logger.info(f"{len(fetched_data)} {self.ff_type.value} fetched.")
         logger.info(f"Getting {self.ff_type.value} fetched -> done")
 
         # キャッシュに保存
-        for i, content in enumerate(fetched_contents["data"]):
+        for i, content in enumerate(fetched_data):
             Path(base_path / f"content_cache{i}.txt").write_bytes(orjson.dumps(content, option=orjson.OPT_INDENT_2))
 
         # キャッシュから読み込み
         # content_list と result はほぼ同一の内容になる
         # 違いは result は dump -> load したときに、エンコード等が吸収されていること
         result: list[dict] = []
-        for i, content in enumerate(fetched_contents["data"]):
+        for i, content in enumerate(fetched_data):
             json_dict = orjson.loads(Path(base_path / f"content_cache{i}.txt").read_bytes())
             result.append(json_dict)
 
